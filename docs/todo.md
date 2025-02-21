@@ -4,9 +4,7 @@
     
     Char-by-Char Lexer
     Tokens:
-        loops:
-            if
-            while
+
         operators:
             bitwise:
                 not : ~
@@ -14,6 +12,7 @@
                 or : |
                 lShift : <<
                 rShift : >>
+
             comparison:
                 not : !
                 and : &&
@@ -24,6 +23,7 @@
                 lEq : <=
                 gEq : >=
                 eq : ==
+
             operations:
                 mult : *
                 add : +
@@ -33,19 +33,49 @@
                 assign : =
                 ptr : *
                 ref : &
+
             misc:
                 end of statement : ;
                 startOfComment : -!
                 endOfComment : !-
-        declarations:
-            let -> makes const variable
-            mut -> makes variable mutable
-            : {type} :  specifies variable type
-            Example:
-                let x : int = 3; -- Valid
-                let y : int; -- Invalid
-                x = 4; -- Invalid , all variables are const by default
-                let mut z : char = 'a'; -- Mutable variable
-                z = 'c'; -- Valid because z is mutable
+                lBracket : {
+                rBracket : }
+                lcBracket : (
+                rcBracket : )
+                dots : :                
+
+        declarations/keywords:
+            if
+            while
+            let : makes const variable
+            mut : makes variable mutable
+            {type} :  specifies variable/function type
+            # : preprocessor macro
+            return : return from function
+            
+        preprocessor:
+            include <{library/libraryPath}> : includes library
+        
+        types:
+            int8
+            int16
+            int32
+            int64
+            uint8
+            uint16
+            uint32
+            uint64
+            
+            char
+            uchar
+            
+            bool
+            
+            float32
+            float64
+            float128
+
+            void
+            
 
    
