@@ -1,0 +1,3 @@
+src/cores
+bin/
+*.o
