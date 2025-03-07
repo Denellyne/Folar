@@ -69,6 +69,8 @@
             char
             uchar
             
+            string
+
             bool
             
             float32

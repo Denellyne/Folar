@@ -13,7 +13,9 @@ private:
   bool openFile(std::string_view str);
 
   tokenId getNextToken();
+  char advance();
   char peekAhead();
 
+  unsigned line, column;
   std::ifstream file;
 };
