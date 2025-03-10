@@ -6,6 +6,8 @@ DEBUG = -g -Wall -Wextra -pedantic
 OUT = ../bin/main
 CORES = ./cores/core.*
 
+all: run
+
 %.o: %.cpp 
 	@echo "Compiling..."
 	g++ $(CFLAGS) -c $< -o $@  	

@@ -40,19 +40,19 @@ enum tokens {
   RCurlyBracketToken,
   TYPEIdentifierToken,
 
-  //Declarations
+  // Declarations
   IFToken,
   WHILEToken,
   LETToken,
   MULTToken,
   RETURNToken,
 
-  //Types
+  // Types
   INT8Token,
   INT16Token,
   INT32Token,
   INT64Token,
-  
+
   UInt8Token,
   UInt16Token,
   UInt32Token,
@@ -62,7 +62,7 @@ enum tokens {
   UCharToken,
 
   STRINGToken,
-  
+
   BOOLToken,
 
   FLOAT32Token,
