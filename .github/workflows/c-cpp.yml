@@ -19,4 +19,4 @@ jobs:
     - name : change directory
       run : cd ./src
     - name: make
-      run: make build
+      run: make -f ./src/makefile build
