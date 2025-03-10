@@ -13,6 +13,6 @@ jobs:
 
     steps:
     - name : checkout repo
-      uses: actions/checkout@test
+      uses: actions/checkout@v4
     - name: make
       run: make build
