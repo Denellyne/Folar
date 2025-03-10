@@ -2,9 +2,9 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ "test" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "test" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name : checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@main
     - name : create output directory
       run : mkdir ./bin
     - name: make
