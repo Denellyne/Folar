@@ -14,5 +14,7 @@ jobs:
     steps:
     - name : checkout repo
       uses: actions/checkout@v4
+    - name : create output directory
+      run : mkdir ./bin
     - name: make
-      run: make build
+      run: make -f ./src/makefile build
