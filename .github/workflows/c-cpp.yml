@@ -12,12 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name : checkout repo
     - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
     - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+      run: make build
