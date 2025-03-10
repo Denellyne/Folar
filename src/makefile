@@ -8,6 +8,11 @@ CORES = ./cores/core.*
 
 all: run
 
+build: $(OBJ)
+	@echo "Linking..."
+	g++ $(CFLAGS) $(OBJ) -o $(OUT) 
+	
+
 %.o: %.cpp 
 	@echo "Compiling..."
 	g++ $(CFLAGS) -c $< -o $@  	

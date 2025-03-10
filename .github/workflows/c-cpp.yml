@@ -1,0 +1,21 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name : checkout repo
+      uses: actions/checkout@main
+    - name : create output directory
+      run : mkdir ./bin
+    - name: make
+      run: make build
+      working-directory: ./src
