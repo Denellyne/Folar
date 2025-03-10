@@ -16,9 +16,6 @@ jobs:
       uses: actions/checkout@v4
     - name : create output directory
       run : mkdir ./bin
-    - name : test
-      run : tree .
-    - name : change directory
-      run : cd ./src
     - name: make
-      run: make -f ./src/makefile build
+      run: make build
+      working-directory: ./src
