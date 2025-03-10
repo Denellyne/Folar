@@ -17,6 +17,6 @@ jobs:
     - name : create output directory
       run : mkdir ./bin
     - name : change directory
-      run : cd ./bin
+      run : cd ./src
     - name: make
       run: make build
