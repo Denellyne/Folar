@@ -2,6 +2,7 @@
 #include "../tokens.h"
 #include <fstream>
 #include <string_view>
+#include <vector>
 
 class lexer {
 public:

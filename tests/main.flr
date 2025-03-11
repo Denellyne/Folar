@@ -5,6 +5,9 @@ int main(){
 
   let z : uint8 = x+y;    
   y = z +4;
+  if( y >=3){
+    return 1;
+  }
 
   return 0;
 }

@@ -5,9 +5,14 @@ lexer::lexer(std::string_view str) {
 
   if (!parseFile(str)) {
     std::cerr << "Error found\n";
-    for (const auto &tk : errors) {
+#ifdef DEBUG
+
+    for (const auto &tk : errors)
       std::cerr << tk << '\n';
-    }
+
+    for (const auto &tk : tokens)
+      std::cout << tk << '\n';
+#endif // DEBUG
   }
 }
 
