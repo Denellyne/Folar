@@ -61,6 +61,8 @@ inline char lexer::advance() {
   return c;
 }
 
+char lexer::peekAhead() { return file.peek(); }
+
 tokenId lexer::getNextToken() {
 
   switch (advance()) {
