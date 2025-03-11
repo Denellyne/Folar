@@ -1,6 +1,6 @@
 #pragma once
 #include <experimental/filesystem>
-typedef unsigned char tokenId;
+typedef unsigned short tokenId;
 
 enum tokens {
 
@@ -24,6 +24,7 @@ enum tokens {
   LESSEQUALToken,
   GREATEQUALToken,
   EQUALToken,
+  NOTEQUALToken,
   // Operations
   MULTIPLYToken,
   ADDToken,
@@ -81,4 +82,8 @@ struct token {
   unsigned line = 0;
   unsigned column = 0;
   tokenId id = NOToken;
+  friend std::ostream &operator<<(std::ostream &os, token const &tk) {
+    return os << "Token id " << tk.id << " Position " << tk.line << ' '
+              << tk.column;
+  }
 };

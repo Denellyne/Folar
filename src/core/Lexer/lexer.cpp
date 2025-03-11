@@ -1,7 +1,15 @@
 #include "lexer.h"
 #include <iostream>
 
-lexer::lexer() {}
+lexer::lexer(std::string_view str) {
+
+  if (!parseFile(str)) {
+    std::cerr << "Error found\n";
+    for (const auto &tk : errors) {
+      std::cerr << tk << '\n';
+    }
+  }
+}
 
 lexer::~lexer() { file.close(); }
 
@@ -16,8 +24,12 @@ bool lexer::parseFile(std::string_view str) {
     tkId = getNextToken();
     token tk = token(tkId, line, column - 1);
 
-    if (tkId == ERRORToken)
+    if (tkId == ERRORToken) {
       errorFound = true;
+      errors.emplace_back(tk);
+    } else
+      tokens.emplace_back(tk);
+
     if (tkId == NEWLineToken) {
       line++;
       column = 0;
@@ -40,11 +52,11 @@ bool lexer::openFile(std::string_view str) {
   return true;
 }
 
-char lexer::advance() {
+inline char lexer::advance() {
   char c;
   do {
     column++;
-    file.get();
+    c = file.get();
   } while (c == ' ');
   return c;
 }
@@ -53,10 +65,62 @@ tokenId lexer::getNextToken() {
 
   switch (advance()) {
 
-  case NEWLineToken:
+  case '\n':
     return NEWLineToken;
   case EOF:
     return EOFToken;
+  case '~':
+    return BITWISENOTToken;
+  case '&': {
+    char c = peekAhead();
+    if (c == '&') {
+      advance();
+      return ANDToken;
+    } else if (c == ' ')
+      return BITWISEANDToken;
+  } break;
+  case '|': {
+    char c = peekAhead();
+    if (c == '|') {
+      advance();
+      return ORToken;
+    } else if (c == ' ')
+      return BITWISEORToken;
+  } break;
+
+  case '<': {
+    char c = peekAhead();
+    if (c == '<') {
+      advance();
+      return LSHIFTToken;
+    } else if (c == '=') {
+      advance();
+      return LESSEQUALToken;
+    } else if (c == ' ')
+      return LESSToken;
+  } break;
+
+  case '>': {
+    char c = peekAhead();
+    if (c == '>') {
+      advance();
+      return RSHIFTToken;
+    } else if (c == '=') {
+      advance();
+      return GREATEQUALToken;
+    } else if (c == ' ')
+      return GREATToken;
+  } break;
+  case '!': {
+    char c = peekAhead();
+    if (c == '=') {
+      advance();
+      return NOTEQUALToken;
+    } else if (c == ' ')
+      return NOTToken;
+    break;
+  }
+
   default:
     return ERRORToken;
   };
