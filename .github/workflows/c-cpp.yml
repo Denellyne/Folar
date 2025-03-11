@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name : checkout repo
+    - name : Checkout repo
       uses: actions/checkout@main
-    - name : create output directory
+    - name : Create output directory
       run : mkdir ./bin
-    - name: make
+    - name: Building binaries
       run: make build
       working-directory: ./src
