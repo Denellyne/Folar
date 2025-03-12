@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "../ErrorHandler/errorHandler.h"
 #include <iostream>
 
 lexer::lexer(std::string_view str) {
@@ -6,9 +7,6 @@ lexer::lexer(std::string_view str) {
   if (!parseFile(str)) {
     std::cerr << "Error found\n";
 #ifdef DEBUG
-
-    for (const auto &tk : errors)
-      std::cerr << tk << '\n';
 
     for (const auto &tk : tokens)
       std::cout << tk << '\n';
@@ -31,7 +29,6 @@ bool lexer::parseFile(std::string_view str) {
 
     if (tkId == ERRORToken) {
       errorFound = true;
-      errors.emplace_back(tk);
     } else
       tokens.emplace_back(tk);
 
@@ -53,6 +50,7 @@ bool lexer::openFile(std::string_view str) {
   }
   line = 0;
   column = 0;
+  filePos = 0;
 
   return true;
 }
@@ -61,9 +59,21 @@ inline char lexer::advance() {
   char c;
   do {
     column++;
+    filePos++;
     c = file.get();
-  } while (c == ' ');
+  } while (c == ' ' || c == '\t' || c == '\r');
   return c;
+}
+
+bool lexer::match(char ch) {
+  char c = peekAhead();
+  if (c == ch) {
+    file.get();
+    column++;
+    filePos++;
+    return true;
+  }
+  return false;
 }
 
 char lexer::peekAhead() { return file.peek(); }
@@ -79,58 +89,44 @@ tokenId lexer::getNextToken() {
   case '~':
     return BITWISENOTToken;
   case '&': {
-    char c = peekAhead();
-    if (c == '&') {
-      advance();
+    if (match('&'))
       return ANDToken;
-    } else if (c == ' ')
-      return BITWISEANDToken;
-  } break;
+
+    return BITWISEANDToken;
+  }
   case '|': {
-    char c = peekAhead();
-    if (c == '|') {
-      advance();
+    if (match('|'))
       return ORToken;
-    } else if (c == ' ')
-      return BITWISEORToken;
-  } break;
+
+    return BITWISEORToken;
+  }
 
   case '<': {
-    char c = peekAhead();
-    if (c == '<') {
-      advance();
+    if (match('<'))
       return LSHIFTToken;
-    } else if (c == '=') {
-      advance();
+    else if (match('='))
       return LESSEQUALToken;
-    } else if (c == ' ')
-      return LESSToken;
-  } break;
+    return LESSToken;
+  }
 
   case '>': {
-    char c = peekAhead();
-    if (c == '>') {
-      advance();
+    if (match('>'))
       return RSHIFTToken;
-    } else if (c == '=') {
-      advance();
+    else if (match('='))
       return GREATEQUALToken;
-    } else if (c == ' ')
-      return GREATToken;
-  } break;
+    return GREATToken;
+  }
   case '!': {
-    char c = peekAhead();
-    if (c == '=') {
-      advance();
+    if (match('='))
       return NOTEQUALToken;
-    } else if (c == ' ')
-      return NOTToken;
-    break;
+    return NOTToken;
   }
 
   default:
+    errorReport.reportError(file, line, column, filePos, ERRORTOKEN);
     return ERRORToken;
   };
 
+  errorReport.reportError(file, line, column, filePos, ERRORTOKEN);
   return ERRORToken;
 }

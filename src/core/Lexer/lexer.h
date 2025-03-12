@@ -16,9 +16,9 @@ private:
   tokenId getNextToken();
   char advance();
   char peekAhead();
+  bool match(char ch);
 
-  unsigned line, column;
+  unsigned line, column, filePos;
   std::ifstream file;
-  std::vector<token> errors;
   std::vector<token> tokens;
 };
