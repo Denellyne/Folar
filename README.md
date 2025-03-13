@@ -21,7 +21,7 @@
 ## ⚠️ Note
 
 #### The source code in this repository is released under the MIT License, while the artwork is licensed separately.
-#### Please refer to [ART_LICENSE.txt](./ART_LICENSE.txt) for details.
+#### Please refer to [ART_LICENSE.md](./ART_LICENSE.md) for details.
 
 
 ## About me
