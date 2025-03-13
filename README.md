@@ -18,6 +18,12 @@
 
 #### In spite everything this isn't being made to be a replacement but a project from which I can learn more about compilers whilst achieving something actually useful in my day-to-day use
 
+## ⚠️ Note
+
+#### The source code in this repository is released under the MIT License, while the artwork is licensed separately.
+#### Please refer to [ART_LICENSE.txt](./ART_LICENSE.txt) for details.
+
+
 ## About me
 
 #### I'm a computer enthusiast and I love to thinker with low-level stuff and learn all about the internals of a computer, operating systems or compilers ,if you're interested on my other projects you can find me [here](https://github.com/Denellyne)
