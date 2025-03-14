@@ -8,6 +8,10 @@
 
 #### Folar is a statically typed compiled language that aims to eliminate errors about const correctness that are often the bane of C/C++ by making everything const by default whilst giving you the ability to do everything low-level like in C/C++
 
+## Wiki
+
+#### The [wiki](https://github.com/Denellyne/Folar/wiki) is where you will find all documentation for this language
+
 ## Goals
 
 #### Make a fast and lightweight compiler whilst using gcc as a linker for compatibility with libc 
