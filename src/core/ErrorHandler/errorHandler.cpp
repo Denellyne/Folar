@@ -14,15 +14,22 @@ errorHandler::~errorHandler() {
 void errorHandler::reportError(std::ifstream &file, unsigned line,
                                unsigned column, unsigned filePos,
                                unsigned errorType) {
-  errors.emplace_back(
-      error(getErrorLine(file, filePos, column), line, column, errorType));
+  const std::string str = getErrorLine(file, filePos, column);
+  errors.emplace_back(error(std::move(str), line, column, errorType));
+}
+void errorHandler::reportError(unsigned errorType) {
+  errors.emplace_back(error(errorType));
 }
 
 const std::string errorHandler::getErrorLine(std::ifstream &file,
                                              unsigned filePos,
-                                             unsigned column) {
+                                             unsigned &column) {
   std::string str = "";
   file.seekg(filePos - column);
+  while (file.peek() == ' ') {
+    column--;
+    file.get();
+  }
   std::getline(file, str);
   file.seekg(filePos);
   return str;

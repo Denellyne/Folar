@@ -15,10 +15,12 @@ private:
 
   tokenId getNextToken();
   char advance();
-  char peekAhead();
+  const char peekAhead();
+  bool getStringLiteral();
   bool match(char ch);
 
   unsigned line, column, filePos;
   std::ifstream file;
+  std::string currentLiteral;
   std::vector<token> tokens;
 };

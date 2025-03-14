@@ -7,6 +7,7 @@ OUT = ../bin/main
 CORES = ./cores/core.*
 
 all: run
+cr : clean run
 
 build: $(OBJ)
 	@echo "Linking..."

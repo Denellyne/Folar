@@ -37,6 +37,7 @@ enum tokens {
   ASSIGNToken,
   POINTERToken,
   // Misc
+  VARIABLENAME,
   ENDStatementToken,
   LBracketToken,
   RBracketToken,
@@ -52,6 +53,7 @@ enum tokens {
   RETURNToken,
 
   // Types
+  STRUCTToken,
   INT8Token,
   INT16Token,
   INT32Token,
@@ -105,6 +107,7 @@ inline const std::string tokenNames[] = {
     "MODULUSToken",
     "ASSIGNToken",
     "POINTERToken",
+    "VARIABLENAME",
     "ENDStatementToken",
     "LBracketToken",
     "RBracketToken",
@@ -116,6 +119,7 @@ inline const std::string tokenNames[] = {
     "LETToken",
     "MULTToken",
     "RETURNToken",
+    "STRUCTToken",
     "INT8Token",
     "INT16Token",
     "INT32Token",
@@ -141,13 +145,19 @@ struct token {
   token(tokenId id, unsigned line, unsigned column)
       : id(id), line(line), column(column) {}
 
+  token(tokenId id, unsigned line, unsigned column, std::string &literal)
+      : id(id), line(line), column(column), literal(std::move(literal)) {}
+
+  void setLiteral(std::string &str) { literal = std::move(str); }
+
   unsigned line = 0;
   unsigned column = 0;
   tokenId id = NOToken;
+  std::string literal = "";
 #ifdef DEBUG
   friend std::ostream &operator<<(std::ostream &os, token const &tk) {
     return os << "Token " << tokenNames[tk.id] << " Position " << tk.line << ' '
-              << tk.column;
+              << tk.column << " Literal: " << tk.literal;
   }
 #endif
 };
