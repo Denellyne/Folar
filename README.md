@@ -1,8 +1,14 @@
 # Folar - Programming Language
 
+<logo href="https://github.com/Denellyne/Folar">
+  <img width=100 align="right" src="artwork/logo.png">
+</logo>
+
 #### A programming language as sweet as a folar and as fast as C/C++
 
 [![C/C++ CI](https://github.com/Denellyne/Folar/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/Denellyne/Folar/actions/workflows/c-cpp.yml)
+
+
 
 ## About Folar
 
@@ -21,6 +27,12 @@
 ## About the project
 
 #### In spite everything this isn't being made to be a replacement but a project from which I can learn more about compilers whilst achieving something actually useful in my day-to-day use
+
+## ⚠️ Note
+
+#### The source code in this repository is released under the MIT License, while the artwork is licensed separately.
+#### Please refer to [ART_LICENSE.md](./ART_LICENSE.md) for details.
+
 
 ## About me
 
