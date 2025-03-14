@@ -1,3 +1,4 @@
+CXX = g++
 CFLAGS = -fimplicit-constexpr -std=c++20
 INCLUDES := $(shell find . -name '*.cpp')
 OBJ := $(patsubst %.cpp,%.o,$(INCLUDES))
@@ -11,26 +12,26 @@ cr : clean run
 
 build: $(OBJ)
 	@echo "Linking..."
-	g++ $(CFLAGS) $(OBJ) -o $(OUT) 
+	$(CXX) $(CFLAGS) $(OBJ) -o $(OUT) 
 	
 
 %.o: %.cpp 
 	@echo "Compiling..."
-	g++ $(CFLAGS) -c $< -o $@  	
+	$(CXX) $(CFLAGS) -c $< -o $@  	
 	@echo "Compiled:" $@
 
 run: $(OBJ)
 	@echo "Linking..."
-	g++ $(CFLAGS) $(OBJ) -o $(OUT) 
+	$(CXX) $(CFLAGS) $(OBJ) -o $(OUT) 
 	@$(OUT)
 
 debug: 
 	@echo "Compiling..."
-	g++ $(DEBUG) $(CFLAGS) $(INCLUDES) -o $(OUT)
+	$(CXX) $(DEBUG) $(CFLAGS) $(INCLUDES) -o $(OUT)
 
 dr:
 	@echo "Compiling..."
-	g++ $(DEBUG) $(CFLAGS) $(INCLUDES) -o $(OUT)
+	$(CXX) $(DEBUG) $(CFLAGS) $(INCLUDES) -o $(OUT)
 	@$(OUT)
 
 clean:
