@@ -1,5 +1,5 @@
 
-int main(){
+int8 main() {
   let x : int8 = 3;
   let mut y : int8 = 4;
 
@@ -9,6 +9,13 @@ int main(){
     return 1;
   }
 
+  let str : string = "THIS IS aTeST STring\n";
+  let x : string = "121231";
+  let malformed : string = "This is a malformed string;
+  let malformedR : string = This is another malformed string";
+  let ch : char = 'c';
+  let malformedC : char = a';
+  let malformedCR : char = 'a;
   return 0;
 }
 

@@ -6,8 +6,8 @@ lexer::lexer(std::string_view str) {
 
   if (!parseFile(str))
     std::cerr << "Error found\n";
-#ifdef DEBUG
 
+#ifdef DEBUG
   for (const auto &tk : tokens)
     std::cout << tk << '\n';
 #endif // DEBUG
@@ -35,8 +35,8 @@ bool lexer::parseFile(std::string_view str) {
       line++;
       column = 0;
       break;
-    case STRINGToken:
-    case VARIABLENAME:
+    case STRINGLiteralToken:
+    case IDENTIFIERToken:
     case INT8Token:
     case INT16Token:
     case INT32Token:
@@ -56,13 +56,16 @@ bool lexer::parseFile(std::string_view str) {
 
   } while (tkId != EOFToken);
 
+  std::cout << str << " parsed\n";
+  file.close();
   return !errorFound;
 }
 
 bool lexer::openFile(std::string_view str) {
   file.open(str.data(), std::fstream::in);
   if (file.fail()) {
-    errorReport.reportError(FILEERROR);
+    errorReport.reportError(FILEERROR, str);
+    file.close();
     return false;
   }
   line = 0;
@@ -111,9 +114,46 @@ bool lexer::getStringLiteral() {
   }
 }
 
+bool lexer::getSpecialTokens(char ch) {
+  auto isAlphaNumeric = [](char c) -> bool {
+    if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
+      return true;
+    return false;
+  };
+  auto isSpecialCharacter = [](char c) {
+    if (c == '\"' || c == '\'')
+      return 2;
+    if (c == ';' || c == ' ' || c == '+' || c == '=' || c == '-' || c == '*' ||
+        c == '/' || c == '<' || c == '>' || c == '(' || c == ')' || c == '[' ||
+        c == ']' || c == '{' || c == '}' || c == '\r' || c == '\t')
+      return 1;
+    return 0;
+  };
+
+  currentLiteral = ch;
+  while (isAlphaNumeric(ch)) {
+    switch (isSpecialCharacter(peekAhead())) {
+    case 2:
+      filePos++;
+      column++;
+      file.get();
+      errorReport.reportError(file, line, column, filePos, MALFORMEDSTRING);
+      return false;
+    case 1:
+      return true;
+    }
+    ch = file.get();
+    column++;
+    filePos++;
+    currentLiteral += ch;
+  }
+  errorReport.reportError(file, line, column, filePos, ERRORTOKEN);
+  return false;
+}
+
 tokenId lexer::getNextToken() {
 
-  switch (advance()) {
+  switch (char ch = advance()) {
 
   case '\n':
     return NEWLineToken;
@@ -161,7 +201,7 @@ tokenId lexer::getNextToken() {
       errorReport.reportError(file, line, column, filePos, MALFORMEDSTRING);
       return ERRORToken;
     }
-    return STRINGToken;
+    return STRINGLiteralToken;
   }
   case '!': {
     if (match('='))
@@ -172,8 +212,13 @@ tokenId lexer::getNextToken() {
     return ENDStatementToken;
 
   default:
-    errorReport.reportError(file, line, column, filePos, ERRORTOKEN);
-    return ERRORToken;
+    if (!getSpecialTokens(ch))
+      return ERRORToken;
+
+    if (auto keyword = keywords.find(currentLiteral); keyword != keywords.end())
+      return keyword->second;
+
+    return IDENTIFIERToken;
   };
 
   errorReport.reportError(file, line, column, filePos, ERRORTOKEN);

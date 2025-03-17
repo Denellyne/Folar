@@ -20,6 +20,9 @@ void errorHandler::reportError(std::ifstream &file, unsigned line,
 void errorHandler::reportError(unsigned errorType) {
   errors.emplace_back(error(errorType));
 }
+void errorHandler::reportError(unsigned errorType, std::string_view str) {
+  errors.emplace_back(error(errorType, str));
+}
 
 const std::string errorHandler::getErrorLine(std::ifstream &file,
                                              unsigned filePos,

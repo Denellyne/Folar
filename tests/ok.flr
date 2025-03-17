@@ -1,0 +1,10 @@
+int8 main(){
+  let x : int8 = 3;
+  let mut n : int8 = 0;
+  while(n++ != 3)
+    if(x+ n==3){
+      print(5);
+    }
+
+  return 0;
+ }

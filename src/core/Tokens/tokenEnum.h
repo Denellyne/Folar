@@ -1,6 +1,5 @@
 #pragma once
-#include <iostream>
-#include <ostream>
+#include <string>
 typedef unsigned short tokenId;
 
 #define DEBUG
@@ -37,7 +36,8 @@ enum tokens {
   ASSIGNToken,
   POINTERToken,
   // Misc
-  VARIABLENAME,
+  MUTABLEToken,
+  IDENTIFIERToken,
   ENDStatementToken,
   LBracketToken,
   RBracketToken,
@@ -76,6 +76,8 @@ enum tokens {
   FLOAT128Token,
 
   VOIDToken,
+  STRINGLiteralToken,
+  CHARLiteralToken,
 };
 
 #ifdef DEBUG
@@ -107,7 +109,8 @@ inline const std::string tokenNames[] = {
     "MODULUSToken",
     "ASSIGNToken",
     "POINTERToken",
-    "VARIABLENAME",
+    "MUTABLEToken",
+    "IDENTIFIERToken",
     "ENDStatementToken",
     "LBracketToken",
     "RBracketToken",
@@ -135,29 +138,9 @@ inline const std::string tokenNames[] = {
     "FLOAT32Token",
     "FLOAT64Token",
     "FLOAT128Token",
+    "VOIDToken",
+    "STRINGLiteralToken",
+    "CHARLiteralToken",
 };
 
 #endif
-
-struct token {
-
-  token() = delete;
-  token(tokenId id, unsigned line, unsigned column)
-      : id(id), line(line), column(column) {}
-
-  token(tokenId id, unsigned line, unsigned column, std::string &literal)
-      : id(id), line(line), column(column), literal(std::move(literal)) {}
-
-  void setLiteral(std::string &str) { literal = std::move(str); }
-
-  unsigned line = 0;
-  unsigned column = 0;
-  tokenId id = NOToken;
-  std::string literal = "";
-#ifdef DEBUG
-  friend std::ostream &operator<<(std::ostream &os, token const &tk) {
-    return os << "Token " << tokenNames[tk.id] << " Position " << tk.line << ' '
-              << tk.column << " Literal: " << tk.literal;
-  }
-#endif
-};

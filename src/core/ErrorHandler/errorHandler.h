@@ -16,6 +16,7 @@ class errorHandler {
 public:
   ~errorHandler();
   void reportError(unsigned errorType);
+  void reportError(unsigned errorType, const std::string_view str);
   void reportError(std::ifstream &file, unsigned line, unsigned column,
                    unsigned filePos, unsigned errorType);
 
@@ -23,6 +24,8 @@ private:
   struct error {
     error() = delete;
     error(unsigned errorType) : errorType(errorType) {}
+    error(unsigned errorType, const std::string_view str)
+        : errorType(errorType), str(str) {}
     error(std::string str, unsigned line, unsigned column, unsigned errorType)
         : str(std::move(str)), line(line), column(column),
           errorType(errorType) {}
@@ -42,7 +45,7 @@ private:
       };
       switch (err.errorType) {
       case FILEERROR:
-        return os << errorTypes[FILEERROR];
+        return os << errorTypes[FILEERROR] << ' ' << err.str << "\n\n";
       default:
 
         return os << "Error found at line: " << err.line
