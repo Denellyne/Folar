@@ -13,7 +13,6 @@ cr : clean run
 build: $(OBJ)
 	@echo "Linking..."
 	$(CXX) $(CFLAGS) $(OBJ) -o $(OUT) 
-	
 
 %.o: %.cpp 
 	@echo "Compiling..."
@@ -28,6 +27,11 @@ run: $(OBJ)
 debug: 
 	@echo "Compiling..."
 	$(CXX) $(DEBUG) $(CFLAGS) $(INCLUDES) -o $(OUT)
+
+fuzzer: clean
+	@echo "Compiling"
+	clang -O1 -fsanitize=fuzzer,address -DFUZZER -g -std=c++20 ./core/*/*.cpp fuzz_target.cc -o $(OUT)
+	@$(OUT) ../tests/fuzzCorpus/ -max_len=16365 -only-ascii=1
 
 dr:
 	@echo "Compiling..."
