@@ -2,7 +2,7 @@
 #include <string>
 typedef unsigned short tokenId;
 
-#define DEBUG
+// #define DEBUG
 
 enum tokens {
 
@@ -36,6 +36,7 @@ enum tokens {
   ASSIGNToken,
   POINTERToken,
   // Misc
+  FUNCTIONToken,
   MUTABLEToken,
   IDENTIFIERToken,
   ENDStatementToken,
@@ -109,6 +110,7 @@ inline const std::string tokenNames[] = {
     "MODULUSToken",
     "ASSIGNToken",
     "POINTERToken",
+    "FUNCTIONToken",
     "MUTABLEToken",
     "IDENTIFIERToken",
     "ENDStatementToken",

@@ -18,4 +18,3 @@ int8 main() {
   let malformedCR : char = 'a;
   return 0;
 }
-
