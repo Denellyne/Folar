@@ -3,14 +3,21 @@
 #include <iomanip>
 #include <string>
 #include <vector>
-#define ERRORTOKEN 0
-#define MALFORMEDSTRING 1
-#define FILEERROR 2
-#define MALFORMEDTOKEN 3
+enum errorTypeEnum {
+  ERRORTOKEN = 0,
+  MALFORMEDSTRING,
+  FILEERROR,
+  MALFORMEDTOKEN,
+  MALFORMEDCHAR,
+  BADESCAPING,
+};
 
-inline const std::string errorTypes[]{
-    "Unknown token", "Malformed String literal", "Failed to open file",
-    "Malformed Token did you mean "};
+inline const std::string errorTypes[]{"Unknown token",
+                                      "Malformed String literal",
+                                      "Failed to open file",
+                                      "Malformed Token did you mean ",
+                                      "Malformed Character literal",
+                                      "Bad escaped sequence"};
 
 class errorHandler {
 public:

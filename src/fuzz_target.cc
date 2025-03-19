@@ -4,11 +4,18 @@
 #include <fstream>
 #include <string>
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-  std::string str(*Data, Size);
+  for (int i = 0; i < Size; i++) {
+    if (Data[i] < 32 || Data[i] > 127)
+      return -1;
+  }
+  std::string str(reinterpret_cast<const char *>(Data), Size);
   std::ofstream f("../tests/fuzzCorpus/fuzz.flr");
   f << str;
   f.close();
 
-  lexer l("../tests/fuzzCorpus/fuzz.flr");
+  bool error = false;
+  lexer l("../tests/fuzzCorpus/fuzz.flr", error);
+  if (error)
+    return -1;
   return 0; // Values other than 0 and -1 are reserved for future use.
 }

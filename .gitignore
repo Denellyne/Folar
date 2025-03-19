@@ -1,5 +1,4 @@
 src/cores
 bin/
 *.o
-./tests/fuzz.flr
-tests/fuzzCorpus
+tests/fuzzCorpus/

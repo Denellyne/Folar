@@ -5,7 +5,7 @@
 lexer::lexer(std::string_view str) {
 
   if (!parseFile(str))
-    std::cerr << "Error found\n";
+    std::cerr << "Error found inside: " << str << '\n';
 
 #ifdef DEBUG
   for (const auto &tk : tokens)
@@ -14,7 +14,16 @@ lexer::lexer(std::string_view str) {
 }
 
 lexer::~lexer() { file.close(); }
+#ifdef FUZZER
+lexer::lexer(std::string_view str, bool &errorFound) {
+  errorFound = parseFile(str);
 
+#ifdef DEBUG
+  for (const auto &tk : tokens)
+    std::cout << tk << '\n';
+#endif // DEBUG
+}
+#endif
 bool lexer::parseFile(std::string_view str) {
   if (!openFile(str))
     return false;
@@ -36,6 +45,7 @@ bool lexer::parseFile(std::string_view str) {
       column = 0;
       break;
     case STRINGLiteralToken:
+    case CHARLiteralToken:
     case IDENTIFIERToken:
     case INT8Token:
     case INT16Token:
@@ -56,13 +66,15 @@ bool lexer::parseFile(std::string_view str) {
 
   } while (tkId != EOFToken);
 
+#ifndef FUZZER
   std::cout << str << " parsed\n";
+#endif
   file.close();
   return !errorFound;
 }
 
 bool lexer::openFile(std::string_view str) {
-  file.open(str.data(), std::fstream::in);
+  file.open(str.data(), std::fstream::in | std::fstream::binary);
   if (file.fail()) {
     errorReport.reportError(FILEERROR, str);
     file.close();
@@ -76,43 +88,147 @@ bool lexer::openFile(std::string_view str) {
   return true;
 }
 
+[[nodiscard]] char lexer::consume() {
+  filePos++;
+  column++;
+  return file.get();
+}
+
 inline char lexer::advance() {
   char c;
-  do {
-    column++;
-    filePos++;
-    c = file.get();
-  } while (c == ' ' || c == '\t' || c == '\r');
+  do
+    c = consume();
+  while (c == ' ' || c == '\t' || c == '\r');
   return c;
 }
 
 bool lexer::match(char ch) {
   char c = peekAhead();
   if (c == ch) {
-    file.get();
-    column++;
-    filePos++;
+    c = consume();
     return true;
   }
   return false;
 }
 
 const char lexer::peekAhead() { return file.peek(); }
+const char lexer::peekNextChar() {
+  char c;
+  do
+    c = file.get();
+  while (c == ' ');
+  file.seekg(filePos);
+  return c;
+}
+bool lexer::handleEscaping() {
+  auto isOctal = [](const char c) { return (c >= '0' && c <= '7'); };
+  auto isHex = [](const char c) {
+    return ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
+  };
+  auto handleSpecial = [&](auto condition, int length) {
+    int i = 0;
+    char c = consume();
+    if (condition(c) == false)
+      return false;
+    i += (c - '0');
+    bool isOctal = length == 2;
+    while (length-- != 0) {
+      c = peekAhead();
+      if (condition(c) == false)
+        break;
+      if (isOctal)
+        i = (i << 3) + (c - '0');
+      else
+        i = (i << 4) + (c - '0');
+      c = consume();
+    }
+    currentLiteral += (char)(i);
+
+    return true;
+  };
+
+  char c = consume();
+  switch (c) {
+  case '\'':
+    currentLiteral += '\'';
+    return true;
+  case '"':
+    currentLiteral += '\"';
+    return true;
+  case '?':
+    currentLiteral += '\?';
+    return true;
+  case '\\':
+    currentLiteral += '\\';
+    return true;
+  case 'a':
+    currentLiteral += '\a';
+    return true;
+  case 'b':
+    currentLiteral += '\b';
+    return true;
+  case 'f':
+    currentLiteral += '\f';
+    return true;
+  case 'n':
+    currentLiteral += '\n';
+    return true;
+  case 'r':
+    currentLiteral += '\r';
+    return true;
+  case 't':
+    currentLiteral += '\t';
+    return true;
+  case 'v':
+    currentLiteral += '\v';
+    return true;
+  case 'x':
+    return handleSpecial(isHex, 1);
+  default:
+    file.unget();
+    filePos--;
+    column--;
+    return handleSpecial(isOctal, 2);
+  }
+  return false;
+}
+bool lexer::getCharacter() {
+
+  currentLiteral.clear();
+  char c;
+
+  while (true) {
+    c = consume();
+    if (c == '\\') {
+      if (!handleEscaping())
+        errorReport.reportError(file, line, column, filePos, BADESCAPING);
+    } else if (c == '\'')
+      return true;
+    else if (c == '\n' || c == EOF || c == ';')
+      return false;
+    else
+      currentLiteral += c;
+  }
+}
 
 bool lexer::getStringLiteral() {
   currentLiteral.clear();
   char c;
   while (true) {
-    c = file.get();
-    column++;
-    filePos++;
-    if (c == '\"')
+    c = consume();
+    if (c == '\\') {
+      if (!handleEscaping())
+        errorReport.reportError(file, line, column, filePos, BADESCAPING);
+    } else if (c == '"')
       return true;
-    if (c == ';' || c == '\n' || c == EOF)
+    else if (c == '\n' || c == EOF || c == ';')
       return false;
-    currentLiteral += c;
+    else
+      currentLiteral += c;
   }
 }
+
+// bool lexer::getNumberLiteral(){}
 
 bool lexer::getSpecialTokens(char ch) {
   auto isAlphaNumeric = [](char c) -> bool {
@@ -121,8 +237,10 @@ bool lexer::getSpecialTokens(char ch) {
     return false;
   };
   auto isSpecialCharacter = [](char c) {
-    if (c == '\"' || c == '\'')
+    if (c == '\"')
       return 2;
+    else if (c == '\'')
+      return 3;
     if (c == ';' || c == ' ' || c == '+' || c == '=' || c == '-' || c == '*' ||
         c == '/' || c == '<' || c == '>' || c == '(' || c == ')' || c == '[' ||
         c == ']' || c == '{' || c == '}' || c == '\r' || c == '\t')
@@ -134,17 +252,17 @@ bool lexer::getSpecialTokens(char ch) {
   while (isAlphaNumeric(ch)) {
     switch (isSpecialCharacter(peekAhead())) {
     case 2:
-      filePos++;
-      column++;
-      file.get();
+      ch = consume();
       errorReport.reportError(file, line, column, filePos, MALFORMEDSTRING);
+      return false;
+    case 3:
+      ch = consume();
+      errorReport.reportError(file, line, column, filePos, MALFORMEDCHAR);
       return false;
     case 1:
       return true;
     }
-    ch = file.get();
-    column++;
-    filePos++;
+    ch = consume();
     currentLiteral += ch;
   }
   errorReport.reportError(file, line, column, filePos, ERRORTOKEN);
@@ -193,9 +311,36 @@ tokenId lexer::getNextToken() {
     return ASSIGNToken;
   }
 
-  case '*': {
-    break;
+  case '*':
+    return MULTIPLYToken;
+
+  case '+':
+    return ADDToken;
+  case '-':
+    return SUBToken;
+  case '/':
+    return DIVIDEToken;
+  case '%':
+    return MODULUSToken;
+  case '{':
+    return LBracketToken;
+  case '}':
+    return RBracketToken;
+  case '(':
+    return LCurlyBracketToken;
+  case ')':
+    return RCurlyBracketToken;
+  case ':':
+    return TYPEIdentifierToken;
+
+  case '\'': {
+    if (!getCharacter()) {
+      errorReport.reportError(file, line, column, filePos, MALFORMEDCHAR);
+      return ERRORToken;
+    }
+    return CHARLiteralToken;
   }
+
   case '\"': {
     if (!getStringLiteral()) {
       errorReport.reportError(file, line, column, filePos, MALFORMEDSTRING);

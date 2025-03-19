@@ -5,6 +5,9 @@ int8 main(){
     if(x+ n==3){
       print(5);
     }
+  let hex : char  = '\x61';
+  let octal : char = '\76';
+  let str : string = "This is a test String\n\tChecking if it works\n";
 
   return 0;
  }

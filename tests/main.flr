@@ -11,9 +11,11 @@ int8 main() {
 
   let str : string = "THIS IS aTeST STring\n";
   let x : string = "121231";
+  let escapedStr : string = "aadasd\'wasdef\;\"\nasdasd;
   let malformed : string = "This is a malformed string;
   let malformedR : string = This is another malformed string";
   let ch : char = 'c';
+  let escapedCh : char = '\'';
   let malformedC : char = a';
   let malformedCR : char = 'a;
   return 0;

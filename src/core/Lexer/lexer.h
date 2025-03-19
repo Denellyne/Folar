@@ -10,6 +10,9 @@ public:
   ~lexer();
 
   bool parseFile(std::string_view str);
+#ifdef FUZZER
+  lexer(std::string_view str, bool &errorFound);
+#endif
 
 private:
   bool openFile(std::string_view str);
@@ -17,8 +20,11 @@ private:
   tokenId getNextToken();
   char advance();
   const char peekAhead();
+  const char peekNextChar();
+  [[nodiscard]] char consume();
   bool getStringLiteral();
   bool getCharacter();
+  bool handleEscaping();
   bool getNumberLiteral();
   bool getSpecialTokens(char ch);
   bool match(char ch);
