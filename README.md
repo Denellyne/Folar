@@ -20,7 +20,7 @@
 
 ## About the project
 
-#### In spite everything this isn't being made to be a replacement but a project from which I can learn more about compilers whilst achieving something actually useful in my day-to-day use
+#### In spite of everything this isn't being made to be a replacement but a project from which I can learn more about compilers whilst achieving something actually useful in my day-to-day use
 
 ## ⚠️ Note
 
