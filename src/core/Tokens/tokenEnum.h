@@ -44,6 +44,8 @@ enum tokens {
   RBracketToken,
   LCurlyBracketToken,
   RCurlyBracketToken,
+  LRectBracketToken,
+  RRectBracketToken,
   TYPEIdentifierToken,
 
   // Declarations
@@ -79,6 +81,8 @@ enum tokens {
   VOIDToken,
   STRINGLiteralToken,
   CHARLiteralToken,
+  NUMBERLiteralToken,
+  FLOATLiteralToken,
 };
 
 #ifdef DEBUG
@@ -118,6 +122,8 @@ inline const std::string tokenNames[] = {
     "RBracketToken",
     "LCurlyBracketToken",
     "RCurlyBracketToken",
+    "LRectBracketToken",
+    "RRectBracketToken",
     "TYPEIdentifierToken",
     "IFToken",
     "WHILEToken",
@@ -143,6 +149,8 @@ inline const std::string tokenNames[] = {
     "VOIDToken",
     "STRINGLiteralToken",
     "CHARLiteralToken",
+    "NUMBERLiteralToken",
+    "FLOATLiteralToken",
 };
 
 #endif

@@ -9,5 +9,21 @@ int8 main(){
   let octal : char = '\76';
   let str : string = "This is a test String\n\tChecking if it works\n";
 
+
+
+
+
+
+  {
+
+  }
+
+
+  
+
+  let num : int64 = 2113;
+
+  let float : float64 = 1234.2113; 
+
   return 0;
  }

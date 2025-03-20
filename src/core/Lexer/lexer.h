@@ -25,8 +25,9 @@ private:
   bool getStringLiteral();
   bool getCharacter();
   bool handleEscaping();
-  bool getNumberLiteral();
+  int getNumberLiteral(char ch);
   bool getSpecialTokens(char ch);
+  int isSpecialCharacter(char ch);
   bool match(char ch);
 
   unsigned line, column, filePos;

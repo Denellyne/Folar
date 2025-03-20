@@ -31,7 +31,7 @@ debug:
 fuzzer: clean
 	@echo "Compiling"
 	clang -O1 -fsanitize=fuzzer,address -DFUZZER -g -std=c++20 ./core/*/*.cpp fuzz_target.cc -o $(OUT)
-	@mkdir -p ../tests/fuzzCorpus
+	@bash ../tests/fuzz.sh
 	@$(OUT) ../tests/fuzzCorpus/ -max_len=16365 -only-ascii=1 -print_final_stats=1
 
 dr:

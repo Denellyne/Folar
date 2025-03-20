@@ -46,6 +46,8 @@ bool lexer::parseFile(std::string_view str) {
       break;
     case STRINGLiteralToken:
     case CHARLiteralToken:
+    case NUMBERLiteralToken:
+    case FLOATLiteralToken:
     case IDENTIFIERToken:
     case INT8Token:
     case INT16Token:
@@ -228,24 +230,51 @@ bool lexer::getStringLiteral() {
   }
 }
 
-// bool lexer::getNumberLiteral(){}
+int lexer::getNumberLiteral(char ch) {
+  auto isValid = [](char c) {
+    return (c == ';' || c == ')' || c == ']' || c == '*' || c == '-' ||
+            c == '+' || c == '/' || c == '%');
+  };
+  bool isFloat = false;
+  currentLiteral.clear();
+  currentLiteral += ch;
+  while (true) {
+    ch = consume();
+    if (ch == '.') {
+      if (isFloat) {
+        errorReport.reportError(file, line, column, filePos, MALFORMEDNUMBER);
+        return 0;
+      }
+      currentLiteral += '.';
+      isFloat = true;
+    } else if (ch >= '0' && ch <= '9')
+      currentLiteral += ch;
+    else if (ch == ' ' && !isValid(peekNextChar())) {
+      errorReport.reportError(file, line, column, filePos, MALFORMEDNUMBER);
+      return 0;
+    } else
+      return 1 + isFloat;
+  }
+}
+
+int lexer::isSpecialCharacter(char c) {
+  if (c == '\"')
+    return 2;
+  else if (c == '\'')
+    return 3;
+  else if (c == ';' || c == ' ' || c == '+' || c == '=' || c == '-' ||
+           c == '*' || c == '/' || c == '<' || c == '>' || c == '(' ||
+           c == ')' || c == '[' || c == ']' || c == '{' || c == '}' ||
+           c == '\r' || c == '\t')
+    return 1;
+  return 0;
+};
 
 bool lexer::getSpecialTokens(char ch) {
   auto isAlphaNumeric = [](char c) -> bool {
     if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
       return true;
     return false;
-  };
-  auto isSpecialCharacter = [](char c) {
-    if (c == '\"')
-      return 2;
-    else if (c == '\'')
-      return 3;
-    if (c == ';' || c == ' ' || c == '+' || c == '=' || c == '-' || c == '*' ||
-        c == '/' || c == '<' || c == '>' || c == '(' || c == ')' || c == '[' ||
-        c == ']' || c == '{' || c == '}' || c == '\r' || c == '\t')
-      return 1;
-    return 0;
   };
 
   currentLiteral = ch;
@@ -326,6 +355,10 @@ tokenId lexer::getNextToken() {
     return LBracketToken;
   case '}':
     return RBracketToken;
+  case '[':
+    return LRectBracketToken;
+  case ']':
+    return RRectBracketToken;
   case '(':
     return LCurlyBracketToken;
   case ')':
@@ -357,7 +390,17 @@ tokenId lexer::getNextToken() {
     return ENDStatementToken;
 
   default:
-    if (!getSpecialTokens(ch))
+    if (ch >= '0' && ch <= '9') {
+      int returnValue = getNumberLiteral(ch);
+      if (returnValue == 0)
+        return ERRORToken;
+
+      else if (returnValue == 1)
+        return NUMBERLiteralToken;
+
+      return FLOATLiteralToken;
+
+    } else if (!getSpecialTokens(ch))
       return ERRORToken;
 
     if (auto keyword = keywords.find(currentLiteral); keyword != keywords.end())

@@ -1,3 +1,3 @@
-rm -rf ./fuzzCorpus
-mkdir ./fuzzCorpus
-cp *.flr ./fuzzCorpus/
+rm -rf ../tests/fuzzCorpus
+mkdir ../tests/fuzzCorpus
+cp ../tests/*.flr ../tests/fuzzCorpus/

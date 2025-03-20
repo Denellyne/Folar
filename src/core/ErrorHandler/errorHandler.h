@@ -10,6 +10,7 @@ enum errorTypeEnum {
   MALFORMEDTOKEN,
   MALFORMEDCHAR,
   BADESCAPING,
+  MALFORMEDNUMBER,
 };
 
 inline const std::string errorTypes[]{"Unknown token",
@@ -17,7 +18,8 @@ inline const std::string errorTypes[]{"Unknown token",
                                       "Failed to open file",
                                       "Malformed Token did you mean ",
                                       "Malformed Character literal",
-                                      "Bad escaped sequence"};
+                                      "Bad escaped sequence",
+                                      "Malformed number token"};
 
 class errorHandler {
 public:
