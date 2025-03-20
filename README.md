@@ -1,14 +1,12 @@
 # Folar - Programming Language
 
-<logo href="https://github.com/Denellyne/Folar">
-  <img width=100 align="right" src="artwork/logo.png">
+  <logo href="https://github.com/Denellyne/Folar">
+  <img width=120 align="right" src="artwork/logo.png" style="image-rendering: crisp-edges; max-width: 100%; height: auto;">
 </logo>
 
 #### A programming language as sweet as a folar and as fast as C/C++
 
 [![C/C++ CI](https://github.com/Denellyne/Folar/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/Denellyne/Folar/actions/workflows/c-cpp.yml)
-
-
 
 ## About Folar
 
