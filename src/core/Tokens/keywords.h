@@ -24,4 +24,8 @@ static std::unordered_map<std::string, tokenId> keywords{
     {"float128", FLOAT128Token},
     {"string", STRINGToken},
     {"bool", BOOLToken},
-    {"void", VOIDToken}};
+    {"true", TRUEToken},
+    {"false", FALSEToken},
+    {"void", VOIDToken},
+    {"enum", ENUMToken},
+    {"null", NULLToken}};

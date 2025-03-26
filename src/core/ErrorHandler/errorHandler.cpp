@@ -17,10 +17,18 @@ void errorHandler::reportError(std::ifstream &file, unsigned line,
   const std::string str = getErrorLine(file, filePos, column);
   errors.emplace_back(error(std::move(str), line, column, errorType));
 }
+
+void errorHandler::reportError(std::string &str, unsigned line, unsigned column,
+                               unsigned errorType) {
+  errors.emplace_back(str, line, column, errorType);
+}
 void errorHandler::reportError(unsigned errorType) {
   errors.emplace_back(error(errorType));
 }
 void errorHandler::reportError(unsigned errorType, std::string_view str) {
+  errors.emplace_back(error(errorType, str));
+}
+void errorHandler::reportError(unsigned errorType, const std::string str) {
   errors.emplace_back(error(errorType, str));
 }
 

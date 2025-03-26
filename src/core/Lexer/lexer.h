@@ -10,6 +10,7 @@ public:
   ~lexer();
 
   bool parseFile(std::string_view str);
+  std::vector<token> &getTokens() { return tokens; }
 #ifdef FUZZER
   lexer(std::string_view str, bool &errorFound);
 #endif

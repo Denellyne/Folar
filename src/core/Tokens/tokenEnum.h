@@ -40,6 +40,7 @@ enum tokens {
   MUTABLEToken,
   IDENTIFIERToken,
   ENDStatementToken,
+  ENUMToken,
   LBracketToken,
   RBracketToken,
   LCurlyBracketToken,
@@ -79,13 +80,14 @@ enum tokens {
   FLOAT128Token,
 
   VOIDToken,
+  TRUEToken,
+  FALSEToken,
+  NULLToken,
   STRINGLiteralToken,
   CHARLiteralToken,
   NUMBERLiteralToken,
   FLOATLiteralToken,
 };
-
-#ifdef DEBUG
 
 inline const std::string tokenNames[] = {
     "NOToken",
@@ -118,6 +120,7 @@ inline const std::string tokenNames[] = {
     "MUTABLEToken",
     "IDENTIFIERToken",
     "ENDStatementToken",
+    "ENUMToken",
     "LBracketToken",
     "RBracketToken",
     "LCurlyBracketToken",
@@ -147,10 +150,11 @@ inline const std::string tokenNames[] = {
     "FLOAT64Token",
     "FLOAT128Token",
     "VOIDToken",
+    "TRUEToken",
+    "FALSEToken",
+    "NULLToken",
     "STRINGLiteralToken",
     "CHARLiteralToken",
     "NUMBERLiteralToken",
     "FLOATLiteralToken",
 };
-
-#endif

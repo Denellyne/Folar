@@ -239,17 +239,19 @@ int lexer::getNumberLiteral(char ch) {
   currentLiteral.clear();
   currentLiteral += ch;
   while (true) {
-    ch = consume();
+    ch = peekAhead();
     if (ch == '.') {
+      ch = consume();
       if (isFloat) {
         errorReport.reportError(file, line, column, filePos, MALFORMEDNUMBER);
         return 0;
       }
       currentLiteral += '.';
       isFloat = true;
-    } else if (ch >= '0' && ch <= '9')
+    } else if (ch >= '0' && ch <= '9') {
+      ch = consume();
       currentLiteral += ch;
-    else if (ch == ' ' && !isValid(peekNextChar())) {
+    } else if (ch == ' ' && !isValid(peekNextChar())) {
       errorReport.reportError(file, line, column, filePos, MALFORMEDNUMBER);
       return 0;
     } else

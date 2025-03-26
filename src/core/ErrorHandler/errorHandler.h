@@ -11,6 +11,7 @@ enum errorTypeEnum {
   MALFORMEDCHAR,
   BADESCAPING,
   MALFORMEDNUMBER,
+  MALFORMEDEXPR,
 };
 
 inline const std::string errorTypes[]{"Unknown token",
@@ -19,21 +20,27 @@ inline const std::string errorTypes[]{"Unknown token",
                                       "Malformed Token did you mean ",
                                       "Malformed Character literal",
                                       "Bad escaped sequence",
-                                      "Malformed number token"};
+                                      "Malformed number token",
+                                      "Malformed expression"};
 
 class errorHandler {
 public:
   ~errorHandler();
   void reportError(unsigned errorType);
   void reportError(unsigned errorType, const std::string_view str);
+  void reportError(unsigned errorType, const std::string str);
   void reportError(std::ifstream &file, unsigned line, unsigned column,
                    unsigned filePos, unsigned errorType);
+  void reportError(std::string &str, unsigned line, unsigned column,
+                   unsigned errorType);
 
 private:
   struct error {
     error() = delete;
     error(unsigned errorType) : errorType(errorType) {}
     error(unsigned errorType, const std::string_view str)
+        : errorType(errorType), str(str) {}
+    error(unsigned errorType, const std::string str)
         : errorType(errorType), str(str) {}
     error(std::string str, unsigned line, unsigned column, unsigned errorType)
         : str(std::move(str)), line(line), column(column),
