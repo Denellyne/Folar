@@ -1,7 +1,28 @@
 #include "parser.h"
 #include "Rules/Expressions/literalExpr.h"
 #include "Rules/expressions.h"
-
+bool parser::createFilestream(std::string_view str) {
+  closeFile();
+  file.open(str.data(), std::fstream::in | std::fstream::binary);
+  if (file.fail()) {
+    closeFile();
+    errorReport.reportError(FILEERROR, str);
+    return false;
+  }
+  return true;
+}
+void parser::closeFile() {
+  file.clear();
+  file.seekg(0, std::ios::beg);
+  file.close();
+  while (file.is_open())
+    ;
+}
+void parser::receiveTokens(const std::vector<token> &token) {
+  tokens = std::move(token);
+  pos = 0;
+  errorFound = 0;
+}
 bool parser::isEOF() { return peek().id == EOFToken; }
 token parser::peek() { return tokens[pos]; }
 token parser::previous() { return tokens[pos - 1]; }
@@ -22,15 +43,16 @@ token parser::consume(tokenId tk) {
 
   std::string str;
   switch (tk) {
-  case LCurlyBracketToken:
+  case RCurlyBracketToken:
     str = tokenNames[peek().id];
-    str += " should had been" + tokenNames[LCurlyBracketToken] + '\n';
+    str += " should had been" + tokenNames[RCurlyBracketToken];
     break;
   }
 
   errorFound = true;
-  errorReport.reportError(str, peek().line, peek().column, MALFORMEDEXPR);
-  return token(ERRORToken, 0, 0);
+  errorReport.reportError(file, peek().line, peek().column, peek().filePos,
+                          MALFORMEDEXPR);
+  return token(NOToken, 0, 0, 0);
 }
 
 void parser::synchronize() {
@@ -130,8 +152,15 @@ expression *parser::primary() {
   if (match(NULLToken))
     return new literalExpr(NULLToken);
   if (match(STRINGLiteralToken, FLOATLiteralToken, NUMBERLiteralToken,
-            IDENTIFIERToken))
-    return new literalExpr(previous().id, previous().literal);
+            IDENTIFIERToken)) {
+
+    literalExpr *exprs = new literalExpr(previous().id, previous().literal);
+    if (exprs->terminal == ERRORToken) {
+      errorReport.reportError(MALFORMEDEXPR);
+      return nullptr;
+    }
+    return exprs;
+  }
   if (match(ENDStatementToken))
     return new literalExpr(ENDStatementToken);
   if (match(LCurlyBracketToken)) {
@@ -150,8 +179,11 @@ expression *parser::primary() {
     return new groupingExpr(exprs);
   }
   errorFound = true;
-  std::string str = "Not implemented yet";
-  str += ' ' + tokenNames[peek().id];
-  errorReport.reportError(str, peek().line, peek().column, MALFORMEDEXPR);
+  // std::string str = "Not implemented yet";
+  // str += ' ';
+  // str += tokenNames[peek().id];
+  // errorReport.reportError(str, peek().line, peek().column, MALFORMEDEXPR);
+  errorReport.reportError(file, peek().line, peek().column, peek().filePos,
+                          MALFORMEDEXPR);
   return nullptr;
 }

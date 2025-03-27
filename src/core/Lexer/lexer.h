@@ -1,4 +1,5 @@
 #pragma once
+#include "../ErrorHandler/errorHandler.h"
 #include "../Tokens/tokens.h"
 #include <fstream>
 #include <string_view>
@@ -6,14 +7,17 @@
 
 class lexer {
 public:
-  lexer(std::string_view str);
-  ~lexer();
+  lexer() = default;
+  ~lexer() { closeFile(); }
+  // lexer(std::string_view str, errorHandler *errorReport);
 
   bool parseFile(std::string_view str);
   std::vector<token> &getTokens() { return tokens; }
 #ifdef FUZZER
   lexer(std::string_view str, bool &errorFound);
 #endif
+
+  void closeFile();
 
 private:
   bool openFile(std::string_view str);

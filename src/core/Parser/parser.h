@@ -8,12 +8,17 @@
 class parser {
 
 public:
+  parser() = default;
   parser(const std::vector<token> &tokens)
       : tokens(std::move(tokens)), pos(0), errorFound(false) {}
 
+  ~parser() { closeFile(); }
   expression *parse();
+  bool createFilestream(std::string_view str);
   bool isEmpty() { return pos == tokens.size() - 1; }
   bool isEOF();
+  void receiveTokens(const std::vector<token> &token);
+  void closeFile();
 
 private:
   expression *expr();
@@ -43,4 +48,5 @@ private:
   bool errorFound = false;
   unsigned pos = 0;
   std::vector<token> tokens = {};
+  std::ifstream file;
 };

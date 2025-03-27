@@ -2,10 +2,8 @@ int8 main(){
   3 + 1;
   let x : int8 = 3;
   let mut n : int8 = 0;
-  n -= 3;
-  n += x;
   while(n++ != 3)
-    if(x+ n==3){
+    if(x+ n ==3){
       print(5);
     }
   let hex : char  = '\x61';

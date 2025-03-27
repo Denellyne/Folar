@@ -43,7 +43,7 @@ public:
       break;
 
     default:
-      errorReport.reportError(MALFORMEDEXPR);
+      terminal = ERRORToken;
     }
   }
 

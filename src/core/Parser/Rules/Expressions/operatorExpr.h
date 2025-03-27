@@ -10,8 +10,10 @@ public:
   virtual void accept(expression *node) {}
 #ifdef DEBUG
   void print() {
-    std::cout << tokenNames[tk.id] << " L:" << print(left)
-              << " R:" << print(right) << '\n';
+    std::cout << tokenNames[tk.id] << " L:";
+    print(left);
+    std::cout << " R:" << print(right);
+    std::cout << '\n';
   }
 #endif
 

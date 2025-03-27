@@ -1,19 +1,13 @@
 #include "lexer.h"
-#include "../ErrorHandler/errorHandler.h"
 #include <iostream>
 
-lexer::lexer(std::string_view str) {
+// lexer::lexer(std::string_view str, errorHandler *errorReport)
+// : errorReport(errorReport) {
 
-  if (!parseFile(str))
-    std::cerr << "Error found inside: " << str << '\n';
+// if (!parseFile(str))
+// std::cerr << "Error found inside: " << str << '\n';
+// }
 
-#ifdef DEBUG
-  for (const auto &tk : tokens)
-    std::cout << tk << '\n';
-#endif // DEBUG
-}
-
-lexer::~lexer() { file.close(); }
 #ifdef FUZZER
 lexer::lexer(std::string_view str, bool &errorFound) {
   errorFound = parseFile(str);
@@ -24,6 +18,13 @@ lexer::lexer(std::string_view str, bool &errorFound) {
 #endif // DEBUG
 }
 #endif
+void lexer::closeFile() {
+  file.clear();
+  file.seekg(0, std::ios::beg);
+  file.close();
+  while (file.is_open())
+    ;
+}
 bool lexer::parseFile(std::string_view str) {
   if (!openFile(str))
     return false;
@@ -33,7 +34,7 @@ bool lexer::parseFile(std::string_view str) {
   tokenId tkId = NOToken;
   do {
     tkId = getNextToken();
-    token tk = token(tkId, line, column - 1);
+    token tk = token(tkId, line, column - 1, filePos);
 
     switch (tkId) {
     case ERRORToken:
@@ -71,15 +72,20 @@ bool lexer::parseFile(std::string_view str) {
 #ifndef FUZZER
   std::cout << str << " parsed\n";
 #endif
-  file.close();
+#ifdef DEBUG
+  for (const auto &tk : tokens)
+    std::cout << tk << '\n';
+#endif // DEBUG
+  closeFile();
   return !errorFound;
 }
 
 bool lexer::openFile(std::string_view str) {
+  closeFile();
   file.open(str.data(), std::fstream::in | std::fstream::binary);
   if (file.fail()) {
+    closeFile();
     errorReport.reportError(FILEERROR, str);
-    file.close();
     return false;
   }
   line = 0;

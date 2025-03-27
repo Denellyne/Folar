@@ -78,5 +78,4 @@ private:
                                  unsigned &column);
   std::vector<error> errors;
 };
-
 static errorHandler errorReport;
