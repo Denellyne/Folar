@@ -1,20 +1,27 @@
-#include "core/Lexer/lexer.h"
+#include "core/Compiler/compiler.h"
+#include "core/ErrorHandler/errorHandler.h"
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
+#include <memory>
 #include <string>
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-  for (int i = 0; i < Size; i++) {
-    if (Data[i] < 32 || Data[i] > 127)
-      return -1;
-  }
+  // for (int i = 0; i < Size; i++) {
+  // if (Data[i] < 32 || Data[i] > 127)
+  // return -1;
+  // }
   std::string str(reinterpret_cast<const char *>(Data), Size);
+  str += '\0';
   std::ofstream f("../tests/fuzzCorpus/fuzz.flr");
   f << str;
   f.close();
 
   bool error = false;
-  lexer l("../tests/fuzzCorpus/fuzz.flr", error);
+  // std::unique_ptr<compiler> folar =
+  // std::make_unique<compiler>("../tests/fuzzCorpus/fuzz.flr");
+  compiler folar("../tests/fuzzCorpus/fuzz.flr");
+  error = errorReport.gotErrors();
+  errorReport.reset();
   if (error)
     return -1;
   return 0; // Values other than 0 and -1 are reserved for future use.

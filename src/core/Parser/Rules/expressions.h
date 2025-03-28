@@ -7,6 +7,7 @@ class expression {
 public:
   expression() {};
   virtual ~expression();
+  virtual void dealloc() = 0;
   virtual void accept(expression *node) = 0;
 
 #ifdef DEBUG

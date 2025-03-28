@@ -1,23 +1,6 @@
 #include "lexer.h"
 #include <iostream>
 
-// lexer::lexer(std::string_view str, errorHandler *errorReport)
-// : errorReport(errorReport) {
-
-// if (!parseFile(str))
-// std::cerr << "Error found inside: " << str << '\n';
-// }
-
-#ifdef FUZZER
-lexer::lexer(std::string_view str, bool &errorFound) {
-  errorFound = parseFile(str);
-
-#ifdef DEBUG
-  for (const auto &tk : tokens)
-    std::cout << tk << '\n';
-#endif // DEBUG
-}
-#endif
 void lexer::closeFile() {
   file.clear();
   file.seekg(0, std::ios::beg);

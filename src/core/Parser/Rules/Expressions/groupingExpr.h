@@ -5,7 +5,17 @@ class groupingExpr : public expression {
 public:
   groupingExpr(expression *expr) : expr(expr) {}
 
-  virtual void accept(expression *node) {}
+  void dealloc() {
+    if (expr != nullptr) {
+      expr->dealloc();
+      // delete expr;
+    }
+    expr = nullptr;
+    delete this;
+    return;
+  }
+
+  void accept(expression *node) {}
 #ifdef DEBUG
   void print() {
     expr->print();

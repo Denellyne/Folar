@@ -8,12 +8,12 @@ class compiler {
 public:
   compiler() = default;
   compiler(std::string_view str);
+  void compile(std::string_view str);
   ~compiler();
 
 private:
   void parseFile(std::string_view str);
   void parseTokens();
-  void compile(std::string_view str);
 
   lexer lex;
   parser parse;

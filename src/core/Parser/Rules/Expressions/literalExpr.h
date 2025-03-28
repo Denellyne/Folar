@@ -11,6 +11,14 @@ private:
   };
 
 public:
+  void dealloc() {
+    if (terminal == STRINGLiteralToken) {
+      delete literal.str;
+      literal.str = nullptr;
+    }
+    delete this;
+    return;
+  }
   literalExpr(tokenId terminal) : terminal(terminal) {
     switch (terminal) {
 

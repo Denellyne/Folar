@@ -2,8 +2,6 @@
 #include <string>
 typedef unsigned short tokenId;
 
-// #define DEBUG
-
 enum tokens {
 
   NOToken = 0,
@@ -53,7 +51,6 @@ enum tokens {
   IFToken,
   WHILEToken,
   LETToken,
-  MULTToken,
   RETURNToken,
 
   // Types
@@ -131,7 +128,6 @@ inline const std::string tokenNames[] = {
     "IFToken",
     "WHILEToken",
     "LETToken",
-    "MULTToken",
     "RETURNToken",
     "STRUCTToken",
     "INT8Token",

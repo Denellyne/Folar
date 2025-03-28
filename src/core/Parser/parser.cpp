@@ -78,6 +78,10 @@ expression *parser::parse() {
     return nullptr;
   expression *exprs = expr();
   if (errorFound) {
+    if (exprs != nullptr) {
+      exprs->dealloc();
+      // delete exprs;
+    }
     errorFound = false;
     synchronize();
     return nullptr;
@@ -156,6 +160,10 @@ expression *parser::primary() {
 
     literalExpr *exprs = new literalExpr(previous().id, previous().literal);
     if (exprs->terminal == ERRORToken) {
+      if (exprs != nullptr) {
+        exprs->dealloc();
+        // delete exprs;
+      }
       errorReport.reportError(MALFORMEDEXPR);
       return nullptr;
     }
@@ -165,18 +173,33 @@ expression *parser::primary() {
     return new literalExpr(ENDStatementToken);
   if (match(LCurlyBracketToken)) {
     expression *exprs = expr();
-    consume(RCurlyBracketToken);
-    return new groupingExpr(exprs);
+    if (consume(RCurlyBracketToken).id != NOToken)
+      return new groupingExpr(exprs);
+    if (exprs != nullptr) {
+      exprs->dealloc();
+      // delete exprs;
+    }
+    return nullptr;
   }
   if (match(LBracketToken)) {
     expression *exprs = expr();
-    consume(RBracketToken);
-    return new groupingExpr(exprs);
+    if (consume(RBracketToken).id != NOToken)
+      return new groupingExpr(exprs);
+    if (exprs != nullptr) {
+      exprs->dealloc();
+      // delete exprs;
+    }
+    return nullptr;
   }
   if (match(LRectBracketToken)) {
     expression *exprs = expr();
-    consume(RRectBracketToken);
-    return new groupingExpr(exprs);
+    if (consume(RRectBracketToken).id != NOToken)
+      return new groupingExpr(exprs);
+    if (exprs != nullptr) {
+      exprs->dealloc();
+      // delete exprs;
+    }
+    return nullptr;
   }
   errorFound = true;
   // std::string str = "Not implemented yet";

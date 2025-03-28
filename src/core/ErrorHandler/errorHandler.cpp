@@ -9,7 +9,10 @@ errorHandler::~errorHandler() {
     std::cerr << err;
 
   std::cerr << "Found " << errors.size() << " errors\n";
+  reset();
 }
+bool errorHandler::gotErrors() { return errors.size() != 0; }
+void errorHandler::reset() { errors.clear(); }
 
 void errorHandler::reportError(std::ifstream &file, unsigned line,
                                unsigned column, unsigned filePos,

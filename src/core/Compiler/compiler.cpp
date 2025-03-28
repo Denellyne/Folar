@@ -9,8 +9,11 @@ void compiler::parseTokens() {
 
   while (!parse.isEOF()) {
     expression *exprs = parse.parse();
-    if (exprs != nullptr)
+    if (exprs != nullptr) {
       exprs->print();
+      exprs->dealloc();
+      // delete exprs;
+    }
   }
 }
 

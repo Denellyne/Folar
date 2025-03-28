@@ -1,4 +1,5 @@
 src/cores
 bin/
 *.o
+*.d
 tests/fuzzCorpus/

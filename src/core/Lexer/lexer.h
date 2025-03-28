@@ -9,13 +9,9 @@ class lexer {
 public:
   lexer() = default;
   ~lexer() { closeFile(); }
-  // lexer(std::string_view str, errorHandler *errorReport);
 
   bool parseFile(std::string_view str);
   std::vector<token> &getTokens() { return tokens; }
-#ifdef FUZZER
-  lexer(std::string_view str, bool &errorFound);
-#endif
 
   void closeFile();
 

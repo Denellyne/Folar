@@ -26,6 +26,8 @@ inline const std::string errorTypes[]{"Unknown token",
 class errorHandler {
 public:
   ~errorHandler();
+  void reset();
+  bool gotErrors();
   void reportError(unsigned errorType);
   void reportError(unsigned errorType, const std::string_view str);
   void reportError(unsigned errorType, const std::string str);
