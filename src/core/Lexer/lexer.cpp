@@ -17,7 +17,7 @@ bool lexer::parseFile(std::string_view str) {
   tokenId tkId = NOToken;
   do {
     tkId = getNextToken();
-    token tk = token(tkId, line, column - 1, filePos);
+    token tk = token(tkId, line, column, filePos);
 
     switch (tkId) {
     case ERRORToken:
@@ -27,6 +27,7 @@ bool lexer::parseFile(std::string_view str) {
     case NEWLineToken:
       line++;
       column = 0;
+      continue;
       break;
     case STRINGLiteralToken:
     case CHARLiteralToken:
@@ -65,6 +66,7 @@ bool lexer::parseFile(std::string_view str) {
 
 bool lexer::openFile(std::string_view str) {
   closeFile();
+  file.clear();
   file.open(str.data(), std::fstream::in | std::fstream::binary);
   if (file.fail()) {
     closeFile();
@@ -263,7 +265,8 @@ int lexer::isSpecialCharacter(char c) {
 
 bool lexer::getSpecialTokens(char ch) {
   auto isAlphaNumeric = [](char c) -> bool {
-    if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
+    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z'))
       return true;
     return false;
   };

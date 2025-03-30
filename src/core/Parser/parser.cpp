@@ -3,6 +3,7 @@
 #include "Rules/expressions.h"
 bool parser::createFilestream(std::string_view str) {
   closeFile();
+  file.clear();
   file.open(str.data(), std::fstream::in | std::fstream::binary);
   if (file.fail()) {
     closeFile();

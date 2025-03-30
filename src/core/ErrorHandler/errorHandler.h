@@ -52,13 +52,13 @@ private:
     const std::string str;
 
     friend std::ostream &operator<<(std::ostream &os, error const &err) {
-      auto lengthOfInt = [&]() {
+      auto lengthOfInt = [](unsigned line) {
         unsigned size = 0;
-        unsigned x = err.line;
-        while (x > 0) {
+        unsigned x = line;
+        do {
           size++;
           x /= 10;
-        }
+        } while (x != 0);
         return size;
       };
       switch (err.errorType) {
@@ -69,7 +69,7 @@ private:
         return os << "Error found at line: " << err.line
                   << " column: " << err.column << '\n'
                   << err.line << "| " << err.str << '\n'
-                  << std::setw(lengthOfInt() + err.column + 2) << '^'
+                  << std::setw(lengthOfInt(err.line) + 2 + err.column) << '^'
                   << std::setw(0)
                   << " Error Type: " << errorTypes[err.errorType] << "\n\n";
       }

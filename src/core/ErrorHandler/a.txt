@@ -1,0 +1,9 @@
+
+  std::string str = "";
+  file.seekg(filePos - column);
+  file.seekg(-1, file.cur);
+  getline(file, str);
+  while (str[0] == ' ') {
+    column--;
+    str = str.substr(1);
+  }

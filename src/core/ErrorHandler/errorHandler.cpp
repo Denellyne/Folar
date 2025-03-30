@@ -38,13 +38,15 @@ void errorHandler::reportError(unsigned errorType, const std::string str) {
 const std::string errorHandler::getErrorLine(std::ifstream &file,
                                              unsigned filePos,
                                              unsigned &column) {
+
   std::string str = "";
-  file.seekg(filePos - column);
-  while (file.peek() == ' ') {
-    column--;
-    file.get();
-  }
+  file.seekg(filePos - column, std::ios_base::beg);
   std::getline(file, str);
+  while (str[0] == ' ') {
+    column--;
+    str = str.substr(1);
+  }
+
   file.seekg(filePos);
   return str;
 }
