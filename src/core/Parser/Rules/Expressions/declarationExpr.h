@@ -2,14 +2,13 @@
 #include "../expressions.h"
 #include <cassert>
 
-class unaryExpr : public expression {
+class declarationExpr : public expression {
 public:
-  unaryExpr(token tk, expression *expr) : tk(tk), expr(expr) {}
+  declarationExpr(expression *expr) : expr(expr) {}
 
   void dealloc() {
-    if (expr) {
+    if (expr)
       expr->dealloc();
-    }
 
     expr = nullptr;
     delete this;
@@ -17,14 +16,9 @@ public:
   }
   virtual void accept(expression *node) {}
 #ifdef DEBUG
-  void print() {
-    std::cout << tokenNames[tk.id] << " L:";
-    expr->print();
-    std::cout << '\n';
-  }
+  void print() { expr->print(); }
 #endif
 
 private:
-  token tk;
   expression *expr;
 };

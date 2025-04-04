@@ -18,7 +18,8 @@ public:
   void accept(expression *node) {}
 #ifdef DEBUG
   void print() {
-    expr->print();
+    if (expr)
+      expr->print();
     std::cout << '\n';
   }
 #endif

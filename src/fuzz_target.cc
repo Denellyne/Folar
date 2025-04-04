@@ -22,7 +22,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   compiler folar("../tests/fuzzCorpus/fuzz.flr");
   error = errorReport.gotErrors();
   errorReport.reset();
-  if (error)
-    return -1;
+  // if (error)
+  // return -1;
   return 0; // Values other than 0 and -1 are reserved for future use.
 }

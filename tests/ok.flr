@@ -1,22 +1,28 @@
 int8 main(){
-  3 + 1;
   let x : int8 = 3;
   let mut n : int8 = 0;
+
+  n = 3;
+
+
   while(n++ != 3)
     if(x+ n ==3){
       print(5);
     }
+
   let hex : char  = '\x61';
   let octal : char = '\76';
   let str : string = "This is a test String\n\tChecking if it works\n";
 
+  let test : int8 = 32+x;
 
 
 
 
 
   {
-
+  
+  let scopeVariable : char = '\76';
   }
 
 

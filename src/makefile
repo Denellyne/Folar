@@ -25,7 +25,7 @@ fuzzer: clean
 	@echo "Compiling"
 	clang $(FUZZCFLAGS) $(FUZZOBJ) fuzz_target.cc -o $(OUT)
 	# @bash ../tests/fuzz.sh
-	@$(OUT) ../tests/fuzzCorpus/ $(FUZZFLAGS)
+	@$(OUT)  ../tests/fuzzCorpus/ $(FUZZFLAGS)
 
 -include $(DEPS)
 

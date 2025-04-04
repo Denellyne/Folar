@@ -12,7 +12,8 @@ private:
 
 public:
   void dealloc() {
-    if (terminal == STRINGLiteralToken) {
+    if (terminal == STRINGLiteralToken || terminal == CHARLiteralToken ||
+        terminal == IDENTIFIERToken) {
       delete literal.str;
       literal.str = nullptr;
     }
@@ -44,6 +45,8 @@ public:
       literal.intNum = std::atoi(str.data());
       break;
 
+    case IDENTIFIERToken:
+    case CHARLiteralToken:
     case STRINGLiteralToken:
       literal.str = new char[str.length() + 1];
       str.copy(literal.str, str.length());
@@ -68,6 +71,8 @@ public:
       std::cout << literal.intNum;
       break;
 
+    case IDENTIFIERToken:
+    case CHARLiteralToken:
     case STRINGLiteralToken:
       std::cout << literal.str;
       break;

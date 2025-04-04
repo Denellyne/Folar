@@ -1,5 +1,7 @@
 #include "parser.h"
+#include "Rules/Expressions/groupingExpr.h"
 #include "Rules/Expressions/literalExpr.h"
+#include "Rules/Expressions/variableExpr.h"
 #include "Rules/expressions.h"
 bool parser::createFilestream(std::string_view str) {
   closeFile();
@@ -19,6 +21,17 @@ void parser::closeFile() {
   while (file.is_open())
     ;
 }
+void parser::reportError(unsigned errorType) {
+  errorFound = true;
+  errorReport.reportError(file, peek().line, peek().column, peek().filePos,
+                          errorType);
+}
+void parser::reportError(std::string_view customError) {
+
+  errorFound = true;
+  errorReport.reportError(file, peek().line, peek().column, peek().filePos,
+                          CUSTOMERROR, customError);
+}
 void parser::receiveTokens(const std::vector<token> &token) {
   tokens = std::move(token);
   pos = 0;
@@ -37,26 +50,15 @@ bool parser::check(tokenId token) {
     return false;
   return peek().id == token;
 }
-
 token parser::consume(tokenId tk) {
   if (check(tk))
     return advance();
 
-  std::string str;
-  switch (tk) {
-  case RCurlyBracketToken:
-    str = tokenNames[peek().id];
-    str += " should had been" + tokenNames[RCurlyBracketToken];
-    break;
-  }
-
-  errorFound = true;
-  errorReport.reportError(file, peek().line, peek().column, peek().filePos,
-                          MALFORMEDEXPR);
   return token(NOToken, 0, 0, 0);
 }
 
 void parser::synchronize() {
+  errorFound = false;
   advance();
   while (!isEOF()) {
     if (previous().id == NEWLineToken || previous().id == ENDStatementToken)
@@ -67,27 +69,35 @@ void parser::synchronize() {
     case RETURNToken:
     case STRUCTToken:
     case ENUMToken:
+    case LETToken:
       return;
     }
     advance();
   }
 }
 expression *parser::parse() {
-  while (match(NEWLineToken, ENDStatementToken))
+  while (match(NEWLineToken))
     ;
   if (isEOF())
     return nullptr;
-  expression *exprs = expr();
+
+  expression *exprs = declaration();
   if (errorFound) {
-    if (exprs != nullptr) {
+    if (exprs != nullptr)
       exprs->dealloc();
-      // delete exprs;
-    }
-    errorFound = false;
+
     synchronize();
     return nullptr;
   }
   return exprs;
+}
+
+expression *parser::declaration() {
+
+  if (match(LETToken))
+    return variableDeclaration();
+
+  return expr();
 }
 
 expression *parser::expr() { return equality(); }
@@ -157,57 +167,127 @@ expression *parser::primary() {
   if (match(NULLToken))
     return new literalExpr(NULLToken);
   if (match(STRINGLiteralToken, FLOATLiteralToken, NUMBERLiteralToken,
-            IDENTIFIERToken)) {
+            IDENTIFIERToken, CHARLiteralToken)) {
 
     literalExpr *exprs = new literalExpr(previous().id, previous().literal);
     if (exprs->terminal == ERRORToken) {
-      if (exprs != nullptr) {
+      if (exprs != nullptr)
         exprs->dealloc();
-        // delete exprs;
-      }
-      errorReport.reportError(MALFORMEDEXPR);
+
+      reportError("Couldn't find terminal token");
       return nullptr;
     }
     return exprs;
   }
-  if (match(ENDStatementToken))
-    return new literalExpr(ENDStatementToken);
+  // if (match(ENDStatementToken))
+  // return new literalExpr(ENDStatementToken);
   if (match(LCurlyBracketToken)) {
-    expression *exprs = expr();
-    if (consume(RCurlyBracketToken).id != NOToken)
-      return new groupingExpr(exprs);
-    if (exprs != nullptr) {
-      exprs->dealloc();
-      // delete exprs;
+    expression *exprs = declaration();
+    if (consume(RCurlyBracketToken).id == NOToken) {
+      if (exprs != nullptr)
+        exprs->dealloc();
+
+      reportError("Expected )");
+      return nullptr;
     }
-    return nullptr;
+    return new groupingExpr(exprs);
   }
   if (match(LBracketToken)) {
-    expression *exprs = expr();
-    if (consume(RBracketToken).id != NOToken)
-      return new groupingExpr(exprs);
-    if (exprs != nullptr) {
-      exprs->dealloc();
-      // delete exprs;
+
+    expression *exprs = declaration();
+    if (consume(RBracketToken).id == NOToken) {
+      if (exprs != nullptr)
+        exprs->dealloc();
+
+      reportError("Expected }");
+      return nullptr;
     }
-    return nullptr;
+    return new groupingExpr(exprs);
   }
   if (match(LRectBracketToken)) {
-    expression *exprs = expr();
-    if (consume(RRectBracketToken).id != NOToken)
-      return new groupingExpr(exprs);
-    if (exprs != nullptr) {
-      exprs->dealloc();
-      // delete exprs;
+    expression *exprs = declaration();
+    if (consume(RRectBracketToken).id == NOToken) {
+      if (exprs != nullptr)
+        exprs->dealloc();
+
+      reportError("Expected ]");
+      return nullptr;
     }
+    return new groupingExpr(exprs);
+  }
+  reportError(MALFORMEDEXPR);
+  return nullptr;
+}
+
+expression *parser::variableDeclaration() {
+
+  if (match(MUTABLEToken)) {
+    token identifier = advance();
+    if (identifier.id != IDENTIFIERToken) {
+      reportError("Expected variable name");
+      return nullptr;
+    }
+    if (consume(TYPEIdentifierToken).id == NOToken) {
+      reportError("Expected : after variable name");
+      return nullptr;
+    }
+
+    token tk = advance();
+    if (tk.id < INT8Token || tk.id > FLOAT128Token) {
+      const std::string str =
+          "Expected type for variable,got instead " + tokenNames[tk.id];
+      reportError(str);
+      return nullptr;
+    }
+    expression *exprs = nullptr;
+    if (match(ASSIGNToken)) {
+      exprs = expr();
+      if (exprs == nullptr) {
+        reportError("Expected expression after =");
+        return nullptr;
+      }
+    }
+    if (consume(ENDStatementToken).id == NOToken) {
+      if (exprs)
+        exprs->dealloc();
+      reportError("End of statement not found");
+      return nullptr;
+    }
+
+    return new variableExpr(tk, exprs, identifier.literal, true);
+  }
+
+  token identifier = advance();
+  if (identifier.id != IDENTIFIERToken) {
+    reportError("Expected variable name");
     return nullptr;
   }
-  errorFound = true;
-  // std::string str = "Not implemented yet";
-  // str += ' ';
-  // str += tokenNames[peek().id];
-  // errorReport.reportError(str, peek().line, peek().column, MALFORMEDEXPR);
-  errorReport.reportError(file, peek().line, peek().column, peek().filePos,
-                          MALFORMEDEXPR);
-  return nullptr;
+  if (consume(TYPEIdentifierToken).id == NOToken) {
+    reportError("Expected : after variable name");
+    return nullptr;
+  }
+
+  token tk = advance();
+  if (tk.id < INT8Token || tk.id > FLOAT128Token) {
+    const std::string str =
+        "Expected type for variable,got instead " + tokenNames[tk.id];
+    reportError(str);
+    return nullptr;
+  }
+  if (consume(ASSIGNToken).id == NOToken) {
+    reportError(
+        "Can't initialize const variable without assigning to expression");
+    return nullptr;
+  }
+  expression *exprs = expr();
+  if (exprs == nullptr) {
+    reportError("Expected expression after =");
+    return nullptr;
+  }
+  if (consume(ENDStatementToken).id == NOToken) {
+    exprs->dealloc();
+    reportError("End of statement not found");
+    return nullptr;
+  }
+  return new variableExpr(tk, exprs, identifier.literal);
 }

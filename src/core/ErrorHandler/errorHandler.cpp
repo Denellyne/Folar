@@ -21,6 +21,13 @@ void errorHandler::reportError(std::ifstream &file, unsigned line,
   errors.emplace_back(error(std::move(str), line, column, errorType));
 }
 
+void errorHandler::reportError(std::ifstream &file, unsigned line,
+                               unsigned column, unsigned filePos,
+                               unsigned errorType, std::string_view str) {
+
+  std::string strLine = getErrorLine(file, filePos, column);
+  errors.emplace_back(error(std::move(strLine), line, column, errorType, str));
+}
 void errorHandler::reportError(std::string &str, unsigned line, unsigned column,
                                unsigned errorType) {
   errors.emplace_back(str, line, column, errorType);

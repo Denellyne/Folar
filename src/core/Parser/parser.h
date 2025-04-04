@@ -3,6 +3,7 @@
 #include "Rules/Expressions/groupingExpr.h"
 #include "Rules/Expressions/literalExpr.h"
 #include "Rules/Expressions/unaryExpr.h"
+#include "Rules/Expressions/variableExpr.h"
 #include "Rules/expressions.h"
 
 class parser {
@@ -21,6 +22,7 @@ public:
   void closeFile();
 
 private:
+  expression *declaration();
   expression *expr();
   expression *equality();
   expression *comparison();
@@ -28,12 +30,16 @@ private:
   expression *factor();
   expression *unary();
   expression *primary();
+  expression *variableDeclaration();
   token consume(tokenId tk);
   bool check(tokenId token);
   token peek();
   token previous();
   token advance();
   void synchronize();
+
+  void reportError(unsigned errorType);
+  void reportError(std::string_view customError);
 
   template <typename... tokenId> bool match(tokenId... types) {
     for (const auto &token : {types...}) {

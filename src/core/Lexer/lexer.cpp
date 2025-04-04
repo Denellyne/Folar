@@ -245,6 +245,9 @@ int lexer::getNumberLiteral(char ch) {
     } else if (ch == ' ' && !isValid(peekNextChar())) {
       errorReport.reportError(file, line, column, filePos, MALFORMEDNUMBER);
       return 0;
+    } else if (ch != ' ' && !isValid(peekNextChar())) {
+      errorReport.reportError(file, line, column, filePos, MALFORMEDNUMBER);
+      return 0;
     } else
       return 1 + isFloat;
   }
