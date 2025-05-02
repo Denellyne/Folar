@@ -3,8 +3,7 @@ int8 main(){
   let mut n : int8 = 0;
 
   n = 3;
-
-
+  
   while(n++ != 3)
     if(x+ n ==3){
       print(5);

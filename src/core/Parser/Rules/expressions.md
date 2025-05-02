@@ -3,9 +3,10 @@
 declarations -> expressions | variableExpressions
 variableExpressions -> let identifier (: type = expression | mut : type (= expression)?) ; 
 
-    if variable is mutable but no expression is assigned to it, the compiler will initialize it;
+    if variable is mutable but no expression is assigned to it, the compiler will zero initialize it;
 
-expression -> equality
+expression -> assignment
+assignment -> identifier = assignment | equality
 equality -> comparison( (!= | ==) comparison)*
 comparison -> term ( ( > | >= | < | <= )term )*
 term -> factor( ( - | + ) factor)*

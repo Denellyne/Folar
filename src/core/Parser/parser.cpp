@@ -1,8 +1,4 @@
 #include "parser.h"
-#include "Rules/Expressions/groupingExpr.h"
-#include "Rules/Expressions/literalExpr.h"
-#include "Rules/Expressions/variableExpr.h"
-#include "Rules/expressions.h"
 bool parser::createFilestream(std::string_view str) {
   closeFile();
   file.clear();
@@ -100,7 +96,37 @@ expression *parser::declaration() {
   return expr();
 }
 
-expression *parser::expr() { return equality(); }
+expression *parser::expr() { return assignment(); }
+
+expression *parser::assignment() {
+  expression *expr = equality();
+
+  if (match(ASSIGNToken)) {
+    expression *value = assignment();
+    if (dynamic_cast<literalExpr *>(expr) != nullptr) {
+
+      variableExpr *var =
+          new variableExpr(token(NOToken, 0, 0, 0), value,
+                           dynamic_cast<literalExpr *>(expr)->literal.str);
+
+      expr->dealloc();
+
+      if (consume(ENDStatementToken).id == NOToken) {
+        if (var)
+          var->dealloc();
+        reportError("End of statement not found");
+        return nullptr;
+      }
+      return var;
+    }
+    if (expr)
+      expr->dealloc();
+    reportError("Invalid assignment");
+    return nullptr;
+  }
+
+  return expr;
+}
 
 expression *parser::equality() {
   expression *expr = comparison();
@@ -241,7 +267,7 @@ expression *parser::variableDeclaration() {
     }
     expression *exprs = nullptr;
     if (match(ASSIGNToken)) {
-      exprs = expr();
+      exprs = equality();
       if (exprs == nullptr) {
         reportError("Expected expression after =");
         return nullptr;
@@ -279,7 +305,7 @@ expression *parser::variableDeclaration() {
         "Can't initialize const variable without assigning to expression");
     return nullptr;
   }
-  expression *exprs = expr();
+  expression *exprs = equality();
   if (exprs == nullptr) {
     reportError("Expected expression after =");
     return nullptr;
