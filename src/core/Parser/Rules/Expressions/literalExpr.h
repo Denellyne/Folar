@@ -1,6 +1,8 @@
 #pragma once
 #include "../expressions.h"
+#include <any>
 #include <cstring>
+#include <utility>
 
 class literalExpr : public expression {
 private:
@@ -58,7 +60,19 @@ public:
     }
   }
 
-  void accept(expression *node) {}
+  virtual void evaluate() {}
+  virtual std::any getValue() {
+    switch (terminal) {
+    case FLOATLiteralToken:
+      return literal.floatNum;
+    case NUMBERLiteralToken:
+      return (long double)(literal.intNum);
+    default:
+      return literal.str;
+    }
+    std::unreachable();
+  }
+  // virtual void accept(expressionVisitor &visitor) {}
 #ifdef DEBUG
   void print() {
 

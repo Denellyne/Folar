@@ -1,6 +1,7 @@
 #pragma once
 #include "../expressions.h"
 #include <cassert>
+#include <utility>
 
 class unaryExpr : public expression {
 public:
@@ -15,7 +16,17 @@ public:
     delete this;
     return;
   }
-  virtual void accept(expression *node) {}
+  // virtual void accept(expressionVisitor &visitor) {}
+  virtual void evaluate() { expr->evaluate(); }
+  virtual std::any getValue() {
+    long double right = std::any_cast<long double>(expr->getValue());
+    if (tk.id == SUBToken) {
+      return -right;
+    } else
+      return !right;
+
+    std::unreachable();
+  }
 #ifdef DEBUG
   void print() {
     std::cout << tokenNames[tk.id] << " L:";

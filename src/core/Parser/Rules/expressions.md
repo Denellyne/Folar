@@ -1,7 +1,8 @@
 # Expressions
 
-declarations -> expressions | variableExpressions
+declarations -> expressions | variableExpressions | functionDeclaration
 variableExpressions -> let identifier (: type = expression | mut : type (= expression)?) ; 
+functionDeclaration ->  type identifier (( {NOTHING} | (type identifier,)*(type identifier) )) {declarations*}
 
     if variable is mutable but no expression is assigned to it, the compiler will zero initialize it;
 

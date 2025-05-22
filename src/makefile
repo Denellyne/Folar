@@ -1,5 +1,5 @@
 CXX = g++
-CFLAGS = -fimplicit-constexpr -std=c++20 -MMD -MP
+CFLAGS = -fimplicit-constexpr -std=c++23 -MMD -MP
 INCLUDES := $(shell find . -name '*.cpp')
 OBJ := $(patsubst %.cpp,%.o,$(INCLUDES))
 TEST := *.md

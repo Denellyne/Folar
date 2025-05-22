@@ -14,7 +14,7 @@ public:
     delete this;
     return;
   }
-  virtual void accept(expression *node) {}
+  virtual void accept(expressionVisitor &visitor) {}
 #ifdef DEBUG
   void print() { expr->print(); }
 #endif

@@ -22,7 +22,10 @@ public:
     delete this;
     return;
   }
-  virtual void accept(expression *node) {}
+  virtual void evaluate() { expr->evaluate(); }
+  virtual std::any getValue() { return expr->getValue(); }
+
+  // virtual void accept(expressionVisitor &visitor) {}
 #ifdef DEBUG
   void print() {
     std::cout << name << ' ' << tokenNames[tk.id] << " is mutable: " << mut;
