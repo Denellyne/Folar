@@ -18,23 +18,30 @@ br : build run
 
 fuzzerClean: clean
 	@echo "Compiling"
+	@mkdir -p ../bin
+	@mkdir -p ../tests/fuzzCorpus
 	clang++ $(FUZZCFLAGS) $(FUZZOBJ) fuzz_target.cc -o $(OUTFUZZ)
 	@bash ../tests/fuzz.sh
 	@$(OUTFUZZ) ../tests/fuzzCorpus/ $(FUZZFLAGS)
 
 fuzzer: clean
 	@echo "Compiling"
+	@mkdir -p ../bin
+	@mkdir -p ../tests/fuzzCorpus
 	clang++ $(FUZZCFLAGS) $(FUZZOBJ) fuzz_target.cc -o $(OUTFUZZ)
 	# @bash ../tests/fuzz.sh
 	@$(OUTFUZZ)  ../tests/fuzzCorpus/ $(FUZZFLAGS)
 
 fuzzerRun:
+	@mkdir -p ../bin
+	@mkdir -p ../tests/fuzzCorpus
 	@$(OUTFUZZ)  ../tests/fuzzCorpus/ $(FUZZFLAGS)
 
 -include $(DEPS)
 
 build: $(OBJ)
 	@echo "Linking..."
+	@mkdir -p ../bin
 	$(CXX) $(CFLAGS) $(OBJ) -o $(OUT) 
 
 %.o: %.cpp 
@@ -48,11 +55,13 @@ run: $(OBJ)
 
 debug: 
 	@echo "Compiling..."
+	@mkdir -p ../bin
 	$(CXX) $(DEBUG) $(CFLAGS) $(INCLUDES) -o $(OUT)
 
 
 dr:
 	@echo "Compiling..."
+	@mkdir -p ../bin
 	$(CXX) $(DEBUG) $(CFLAGS) $(INCLUDES) -o $(OUT)
 	@$(OUT)
 
