@@ -4,11 +4,13 @@
 errorHandler::~errorHandler() {
   if (errors.empty())
     return;
+#ifndef FUZZER
 
   for (const auto &err : errors)
     std::cerr << err;
 
   std::cerr << "Found " << errors.size() << " errors\n";
+#endif // !FUZZER
   reset();
 }
 bool errorHandler::gotErrors() { return errors.size() != 0; }

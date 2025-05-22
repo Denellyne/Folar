@@ -1,5 +1,6 @@
 #include "core/Compiler/compiler.h"
 #include "core/ErrorHandler/errorHandler.h"
+#include "core/Interpreter/interpreter.h"
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
@@ -19,7 +20,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   bool error = false;
   // std::unique_ptr<compiler> folar =
   // std::make_unique<compiler>("../tests/fuzzCorpus/fuzz.flr");
-  compiler folar("../tests/fuzzCorpus/fuzz.flr");
+  interpreter folar("../tests/fuzzCorpus/fuzz.flr");
   error = errorReport.gotErrors();
   errorReport.reset();
   // if (error)

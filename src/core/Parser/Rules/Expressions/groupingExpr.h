@@ -15,6 +15,7 @@ public:
     return;
   }
 
+  virtual token getErrorLocation() { return expr->getErrorLocation(); }
   virtual void evaluate() { expr->evaluate(); }
   virtual std::any getValue() { return expr->getValue(); }
   // virtual void accept(expressionVisitor &visitor) {}

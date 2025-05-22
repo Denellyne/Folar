@@ -15,15 +15,28 @@ public:
   void dealloc() {
     if (expr)
       expr->dealloc();
-
     expr = nullptr;
-    delete name;
+
+    delete[] name;
     name = nullptr;
+
     delete this;
     return;
   }
-  virtual void evaluate() { expr->evaluate(); }
-  virtual std::any getValue() { return expr->getValue(); }
+  virtual token getErrorLocation() {
+    if (expr)
+      return expr->getErrorLocation();
+    return tk;
+  }
+  virtual void evaluate() {
+    if (expr)
+      expr->evaluate();
+  }
+  virtual std::any getValue() {
+    if (mut && expr == nullptr)
+      return 0;
+    return expr->getValue();
+  }
 
   // virtual void accept(expressionVisitor &visitor) {}
 #ifdef DEBUG

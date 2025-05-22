@@ -1,8 +1,8 @@
 #include "interpreter.h"
 #include <any>
-#include <typeindex>
 
 interpreter::interpreter(std::string_view str) { interpret(str); }
+
 interpreter::~interpreter() {
   lex.closeFile();
   parse.closeFile();
@@ -10,7 +10,8 @@ interpreter::~interpreter() {
 #ifdef DEBUG
     expressions[0]->print();
 #endif
-    expressions[0]->dealloc();
+    if (expressions[0] != nullptr)
+      expressions[0]->dealloc();
     expressions.erase(expressions.begin());
   }
 }
@@ -55,10 +56,38 @@ void interpreter::interpret(std::string_view str) {
     return;
   for (auto &expr : expressions) {
     std::any value = expr->getValue();
-    if (value.type() == typeid(long double))
-      std::cout << std::any_cast<long double>(value) << '\n';
+    if (errorReport.gotErrors())
+      return;
+    if (value.type() == typeid(long double)) {
+#ifdef FUZZER
+      std::any_cast<long double>(value);
+      continue;
 
-    else if (value.type() == typeid(char *))
+#endif // FUZZER
+
+      std::cout << std::any_cast<long double>(value) << '\n';
+    }
+
+    else if (value.type() == typeid(char *)) {
+#ifdef FUZZER
+      std::any_cast<char *>(value);
+      continue;
+
+#endif // FUZZER
       std::cout << std::any_cast<char *>(value) << '\n';
+    }
+
+    else {
+      std::ifstream file(str.data());
+      token tk = expr->getErrorLocation();
+      errorReport.reportError(file, tk.line, tk.column, tk.filePos,
+                              BADCASTERROR);
+      file.close();
+      while (expressions.empty() == false) {
+        expressions[0]->dealloc();
+        expressions.erase(expressions.begin());
+      }
+      return;
+    }
   }
 }

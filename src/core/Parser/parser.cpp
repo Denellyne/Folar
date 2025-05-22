@@ -5,6 +5,7 @@
 #include "Rules/Expressions/unaryExpr.h"
 #include "Rules/Expressions/variableExpr.h"
 #include "Rules/expressions.h"
+#include <cmath>
 bool parser::createFilestream(std::string_view str) {
   closeFile();
   file.clear();
@@ -115,11 +116,14 @@ expression *parser::assignment() {
           new variableExpr(token(NOToken, 0, 0, 0), value,
                            dynamic_cast<literalExpr *>(expr)->literal.str);
 
-      expr->dealloc();
+      if (expr)
+        expr->dealloc();
+      expr = nullptr;
 
       if (consume(ENDStatementToken).id == NOToken) {
         if (var)
           var->dealloc();
+        var = nullptr;
         reportError("End of statement not found");
         return nullptr;
       }
@@ -127,6 +131,12 @@ expression *parser::assignment() {
     }
     if (expr)
       expr->dealloc();
+
+    if (value)
+      value->dealloc();
+
+    value = nullptr;
+    expr = nullptr;
     reportError("Invalid assignment");
     return nullptr;
   }
@@ -200,8 +210,8 @@ expression *parser::primary() {
     return new literalExpr(NULLToken);
   if (match(STRINGLiteralToken, FLOATLiteralToken, NUMBERLiteralToken,
             IDENTIFIERToken, CHARLiteralToken)) {
-
     literalExpr *exprs = new literalExpr(previous().id, previous().literal);
+
     if (exprs->terminal == ERRORToken) {
       if (exprs != nullptr)
         exprs->dealloc();

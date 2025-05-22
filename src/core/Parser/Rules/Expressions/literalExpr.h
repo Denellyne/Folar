@@ -1,7 +1,6 @@
 #pragma once
 #include "../expressions.h"
 #include <any>
-#include <cstring>
 #include <utility>
 
 class literalExpr : public expression {
@@ -14,11 +13,12 @@ private:
 
 public:
   void dealloc() {
-    if (terminal == STRINGLiteralToken || terminal == CHARLiteralToken ||
-        terminal == IDENTIFIERToken) {
-      delete literal.str;
-      literal.str = nullptr;
+    if ((terminal == STRINGLiteralToken || terminal == CHARLiteralToken ||
+         terminal == IDENTIFIERToken) &&
+        literal.str != nullptr) {
+      delete[] literal.str;
     }
+    literal.str = nullptr;
     delete this;
     return;
   }
@@ -34,8 +34,10 @@ public:
       break;
     default:
       literal.intNum = -1;
+      break;
     }
   }
+  virtual token getErrorLocation() { return token(NOToken, 0, 0, 0); }
 
   literalExpr(tokenId terminal, std::string_view str) : terminal(terminal) {
     switch (terminal) {
@@ -57,6 +59,7 @@ public:
 
     default:
       terminal = ERRORToken;
+      break;
     }
   }
 
@@ -67,6 +70,11 @@ public:
       return literal.floatNum;
     case NUMBERLiteralToken:
       return (long double)(literal.intNum);
+    case TRUEToken:
+    case FALSEToken:
+      return (bool)(literal.intNum);
+    case NULLToken:
+      return nullptr;
     default:
       return literal.str;
     }

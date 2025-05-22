@@ -9,7 +9,6 @@
   let octal : char = '\76';
   let str : string = "This is a test String\n\tChecking if it works\n";
 
-  let test : int8 = 32+x;
 
 
 

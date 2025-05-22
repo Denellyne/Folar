@@ -13,6 +13,15 @@ public:
   virtual void dealloc() = 0;
   virtual void evaluate() = 0;
   virtual std::any getValue() = 0;
+  virtual token getErrorLocation() = 0;
+  template <typename T> T typeCast(bool &badCast) {
+    std::any value = this->getValue();
+    if (value.type() != typeid(T)) {
+      badCast = true;
+      return T();
+    }
+    return std::any_cast<T>(value);
+  }
   // virtual void accept(expressionVisitor &visitor) = 0;
 
 #ifdef DEBUG

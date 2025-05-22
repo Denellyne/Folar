@@ -12,6 +12,7 @@ enum errorTypeEnum {
   BADESCAPING,
   MALFORMEDNUMBER,
   MALFORMEDEXPR,
+  BADCASTERROR,
   CUSTOMERROR,
 };
 
@@ -22,13 +23,15 @@ inline const std::string errorTypes[]{"Unknown token",
                                       "Malformed Character literal",
                                       "Bad escaped sequence",
                                       "Malformed number token",
-                                      "Malformed expression"};
+                                      "Malformed expression",
+                                      "Invalid type"};
 
 class errorHandler {
 public:
   ~errorHandler();
   void reset();
   bool gotErrors();
+  void setErrorFlag();
   void reportError(unsigned errorType);
   void reportError(unsigned errorType, const std::string_view str);
   void reportError(unsigned errorType, const std::string str);

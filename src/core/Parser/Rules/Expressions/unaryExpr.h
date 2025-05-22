@@ -5,7 +5,7 @@
 
 class unaryExpr : public expression {
 public:
-  unaryExpr(token tk, expression *expr) : tk(tk), expr(expr) {}
+  unaryExpr(token tk, expression *expr) : tk(tk), expr(expr), badCast(false) {}
 
   void dealloc() {
     if (expr) {
@@ -17,9 +17,20 @@ public:
     return;
   }
   // virtual void accept(expressionVisitor &visitor) {}
+  virtual token getErrorLocation() {
+    if (badCast)
+      return tk;
+    else if (token errorTk = expr->getErrorLocation(); errorTk.id != NOToken)
+      return errorTk;
+    else
+      return token(NOToken, 0, 0, 0);
+  }
   virtual void evaluate() { expr->evaluate(); }
   virtual std::any getValue() {
-    long double right = std::any_cast<long double>(expr->getValue());
+    long double right = expr->typeCast<long double>(badCast);
+    if (badCast)
+      return nullptr;
+
     if (tk.id == SUBToken) {
       return -right;
     } else
@@ -38,4 +49,5 @@ public:
 private:
   token tk;
   expression *expr;
+  bool badCast;
 };
