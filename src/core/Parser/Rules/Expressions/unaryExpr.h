@@ -17,6 +17,7 @@ public:
     return;
   }
   // virtual void accept(expressionVisitor &visitor) {}
+  virtual bool hadBadCast() { return badCast || expr->hadBadCast(); }
   virtual token getErrorLocation() {
     if (badCast)
       return tk;

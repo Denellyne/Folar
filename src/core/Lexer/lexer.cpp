@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include <cstring>
 #include <iostream>
 
 void lexer::closeFile() {
@@ -366,6 +367,9 @@ tokenId lexer::getNextToken() {
   case '\'': {
     if (!getCharacter()) {
       errorReport.reportError(file, line, column, filePos, MALFORMEDCHAR);
+      return ERRORToken;
+    } else if (strlen(currentLiteral.c_str()) > 1) {
+      errorReport.reportError(file, line, column, filePos, CHARLENERROR);
       return ERRORToken;
     }
     return CHARLiteralToken;

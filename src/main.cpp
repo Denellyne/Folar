@@ -5,9 +5,10 @@
 #endif // FUZZER
 
 int main(int argc, char *argv[]) {
-  if (argc > 1) {
+  if (argc > 1)
     interpreter folar(argv[1]);
-  } else
+  else
     compiler folar("../tests/ok.flr");
+
   return 0;
 }

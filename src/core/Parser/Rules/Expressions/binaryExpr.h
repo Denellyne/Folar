@@ -13,6 +13,9 @@ public:
     right->evaluate();
   }
 
+  virtual bool hadBadCast() {
+    return left->hadBadCast() || right->hadBadCast() || badCast;
+  }
   virtual token getErrorLocation() {
     if (badCast)
       return tk;
@@ -34,6 +37,22 @@ public:
       return leftExpr + rightExpr;
     case SUBToken:
       return leftExpr - rightExpr;
+    case MULTIPLYToken:
+      return leftExpr * rightExpr;
+    case DIVIDEToken:
+      return leftExpr * rightExpr;
+    case NOTEQUALToken:
+      return leftExpr != rightExpr;
+    case EQUALToken:
+      return leftExpr == rightExpr;
+    case GREATToken:
+      return leftExpr > rightExpr;
+    case LESSToken:
+      return leftExpr < rightExpr;
+    case GREATEQUALToken:
+      return leftExpr >= rightExpr;
+    case LESSEQUALToken:
+      return leftExpr <= rightExpr;
     }
 
     std::unreachable();

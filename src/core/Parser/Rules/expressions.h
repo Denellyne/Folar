@@ -22,6 +22,7 @@ public:
     }
     return std::any_cast<T>(value);
   }
+  virtual bool hadBadCast() = 0;
   // virtual void accept(expressionVisitor &visitor) = 0;
 
 #ifdef DEBUG

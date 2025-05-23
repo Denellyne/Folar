@@ -13,6 +13,7 @@ public:
 private:
   void parseFile(std::string_view str);
   void parseTokens();
+  void badCastError(std::string_view str, expression *expr);
 
   lexer lex;
   parser parse;

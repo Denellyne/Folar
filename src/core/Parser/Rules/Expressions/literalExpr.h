@@ -38,6 +38,7 @@ public:
     }
   }
   virtual token getErrorLocation() { return token(NOToken, 0, 0, 0); }
+  virtual bool hadBadCast() { return 0; }
 
   literalExpr(tokenId terminal, std::string_view str) : terminal(terminal) {
     switch (terminal) {
@@ -67,7 +68,7 @@ public:
   virtual std::any getValue() {
     switch (terminal) {
     case FLOATLiteralToken:
-      return literal.floatNum;
+      return (long double)(literal.floatNum);
     case NUMBERLiteralToken:
       return (long double)(literal.intNum);
     case TRUEToken:
@@ -75,8 +76,12 @@ public:
       return (bool)(literal.intNum);
     case NULLToken:
       return nullptr;
-    default:
+    case STRINGLiteralToken:
+    case CHARLiteralToken:
+    case IDENTIFIERToken:
       return literal.str;
+    default:
+      return nullptr;
     }
     std::unreachable();
   }

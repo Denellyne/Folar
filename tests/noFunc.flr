@@ -2,18 +2,17 @@
   let x : int8 = 3;
   let mut n : int8 = 0;
 
-  n = 3;
-  
-
   let hex : char  = '\x61';
   let octal : char = '\76';
   let str : string = "This is a test String\n\tChecking if it works\n";
+  let str : char = 'a';
 
 
 
 
 
 
+  
   {
 
   let scopeVariable : char = '\76';

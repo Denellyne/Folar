@@ -17,6 +17,8 @@ public:
   virtual std::any getValue() { return expr->getValue(); }
   virtual token getErrorLocation() { return expr->getErrorLocation(); }
   virtual void evaluate() { expr->evaluate(); }
+
+  virtual bool hadBadCast() { return expr->hadBadCast(); }
   // virtual void accept(expressionVisitor &visitor) {}
 #ifdef DEBUG
   void print() { expr->print(); }

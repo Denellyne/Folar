@@ -56,8 +56,11 @@ void interpreter::interpret(std::string_view str) {
     return;
   for (auto &expr : expressions) {
     std::any value = expr->getValue();
-    if (errorReport.gotErrors())
+
+    if (errorReport.gotErrors() || expr->hadBadCast()) {
+      badCastError(str, expr);
       return;
+    }
     if (value.type() == typeid(long double)) {
 #ifdef FUZZER
       std::any_cast<long double>(value);
@@ -75,19 +78,30 @@ void interpreter::interpret(std::string_view str) {
 
 #endif // FUZZER
       std::cout << std::any_cast<char *>(value) << '\n';
+    } else if (value.type() == typeid(bool)) {
+#ifdef FUZZER
+      std::any_cast<bool>(value);
+      continue;
+
+#endif // FUZZER
+      std::cout << std::any_cast<bool>(value) << '\n';
     }
 
     else {
-      std::ifstream file(str.data());
-      token tk = expr->getErrorLocation();
-      errorReport.reportError(file, tk.line, tk.column, tk.filePos,
-                              BADCASTERROR);
-      file.close();
-      while (expressions.empty() == false) {
-        expressions[0]->dealloc();
-        expressions.erase(expressions.begin());
-      }
+      badCastError(str, expr);
       return;
     }
+  }
+}
+
+void interpreter::badCastError(std::string_view str, expression *expr) {
+
+  std::ifstream file(str.data());
+  token tk = expr->getErrorLocation();
+  errorReport.reportError(file, tk.line, tk.column, tk.filePos, BADCASTERROR);
+  file.close();
+  while (expressions.empty() == false) {
+    expressions[0]->dealloc();
+    expressions.erase(expressions.begin());
   }
 }
