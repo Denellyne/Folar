@@ -1,4 +1,5 @@
 
+  let boolean : bool = "aaa";
   let x : int8 = 3;
   let mut n : int8 = 0;
 

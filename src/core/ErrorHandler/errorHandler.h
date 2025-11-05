@@ -30,10 +30,13 @@ inline const std::string errorTypes[]{"Unknown token",
 
 class errorHandler {
 public:
+  static errorHandler &getInstance() {
+    static errorHandler instance;
+    return instance;
+  }
   ~errorHandler();
   void reset();
   bool gotErrors();
-  void setErrorFlag();
   void reportError(unsigned errorType);
   void reportError(unsigned errorType, const std::string_view str);
   void reportError(unsigned errorType, const std::string str);
@@ -99,4 +102,3 @@ private:
                                  unsigned &column);
   std::vector<error> errors;
 };
-static errorHandler errorReport;

@@ -1,8 +1,6 @@
 #pragma once
-#include "../ErrorHandler/errorHandler.h"
 #include "../Lexer/lexer.h"
 #include "../Parser/parser.h"
-#include <fstream>
 
 class compiler {
 public:
@@ -17,5 +15,4 @@ private:
 
   lexer lex;
   parser parse;
-  errorHandler errorReport;
 };

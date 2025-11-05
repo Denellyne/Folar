@@ -29,12 +29,12 @@ void compiler::parseTokens() {
 void compiler::parseFile(std::string_view str) { return compile(str); }
 void compiler::compile(std::string_view str) {
   lex.parseFile(str);
-  if (errorReport.gotErrors())
+  if (errorHandler::getInstance().gotErrors())
     return;
 
   parse.receiveTokens(lex.getTokens());
   if (!parse.createFilestream(str)) {
-    errorReport.reportError(FILEERROR, str);
+    errorHandler::getInstance().reportError(FILEERROR, str);
     return;
   }
   parseTokens();

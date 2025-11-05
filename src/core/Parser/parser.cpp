@@ -5,14 +5,13 @@
 #include "Rules/Expressions/unaryExpr.h"
 #include "Rules/Expressions/variableExpr.h"
 #include "Rules/expressions.h"
-#include <cmath>
 bool parser::createFilestream(std::string_view str) {
   closeFile();
   file.clear();
   file.open(str.data(), std::fstream::in | std::fstream::binary);
   if (file.fail()) {
     closeFile();
-    errorReport.reportError(FILEERROR, str);
+    errorHandler::getInstance().reportError(FILEERROR, str);
     return false;
   }
   return true;
@@ -26,14 +25,15 @@ void parser::closeFile() {
 }
 void parser::reportError(unsigned errorType) {
   errorFound = true;
-  errorReport.reportError(file, peek().line, peek().column, peek().filePos,
-                          errorType);
+  errorHandler::getInstance().reportError(file, peek().line, peek().column,
+                                          peek().filePos, errorType);
 }
 void parser::reportError(std::string_view customError) {
 
   errorFound = true;
-  errorReport.reportError(file, peek().line, peek().column, peek().filePos,
-                          CUSTOMERROR, customError);
+  errorHandler::getInstance().reportError(file, peek().line, peek().column,
+                                          peek().filePos, CUSTOMERROR,
+                                          customError);
 }
 void parser::receiveTokens(const std::vector<token> &token) {
   tokens = std::move(token);

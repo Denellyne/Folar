@@ -1,13 +1,8 @@
-int8 main(){
   let x : int8 = 3;
   let mut n : int8 = 0;
 
   n = 3;
   
-  while(n++ != 3)
-    if(x+ n ==3){
-      print(5);
-    }
 
   let hex : char  = '\x61';
   let octal : char = '\76';
@@ -31,5 +26,3 @@ int8 main(){
 
   let float : float64 = 1234.2113; 
 
-  return 0;
- }

@@ -71,7 +71,7 @@ bool lexer::openFile(std::string_view str) {
   file.open(str.data(), std::fstream::in | std::fstream::binary);
   if (file.fail()) {
     closeFile();
-    errorReport.reportError(FILEERROR, str);
+    errorHandler::getInstance().reportError(FILEERROR, str);
     return false;
   }
   line = 0;
@@ -195,7 +195,8 @@ bool lexer::getCharacter() {
     c = consume();
     if (c == '\\') {
       if (!handleEscaping())
-        errorReport.reportError(file, line, column, filePos, BADESCAPING);
+        errorHandler::getInstance().reportError(file, line, column, filePos,
+                                                BADESCAPING);
     } else if (c == '\'')
       return true;
     else if (c == '\n' || c == EOF || c == ';')
@@ -212,7 +213,8 @@ bool lexer::getStringLiteral() {
     c = consume();
     if (c == '\\') {
       if (!handleEscaping())
-        errorReport.reportError(file, line, column, filePos, BADESCAPING);
+        errorHandler::getInstance().reportError(file, line, column, filePos,
+                                                BADESCAPING);
     } else if (c == '"')
       return true;
     else if (c == '\n' || c == EOF || c == ';')
@@ -235,7 +237,8 @@ int lexer::getNumberLiteral(char ch) {
     if (ch == '.') {
       ch = consume();
       if (isFloat) {
-        errorReport.reportError(file, line, column, filePos, MALFORMEDNUMBER);
+        errorHandler::getInstance().reportError(file, line, column, filePos,
+                                                MALFORMEDNUMBER);
         return 0;
       }
       currentLiteral += '.';
@@ -244,10 +247,12 @@ int lexer::getNumberLiteral(char ch) {
       ch = consume();
       currentLiteral += ch;
     } else if (ch == ' ' && !isValid(peekNextChar())) {
-      errorReport.reportError(file, line, column, filePos, MALFORMEDNUMBER);
+      errorHandler::getInstance().reportError(file, line, column, filePos,
+                                              MALFORMEDNUMBER);
       return 0;
     } else if (ch != ' ' && !isValid(peekNextChar())) {
-      errorReport.reportError(file, line, column, filePos, MALFORMEDNUMBER);
+      errorHandler::getInstance().reportError(file, line, column, filePos,
+                                              MALFORMEDNUMBER);
       return 0;
     } else
       return 1 + isFloat;
@@ -280,11 +285,13 @@ bool lexer::getSpecialTokens(char ch) {
     switch (isSpecialCharacter(peekAhead())) {
     case 2:
       ch = consume();
-      errorReport.reportError(file, line, column, filePos, MALFORMEDSTRING);
+      errorHandler::getInstance().reportError(file, line, column, filePos,
+                                              MALFORMEDSTRING);
       return false;
     case 3:
       ch = consume();
-      errorReport.reportError(file, line, column, filePos, MALFORMEDCHAR);
+      errorHandler::getInstance().reportError(file, line, column, filePos,
+                                              MALFORMEDCHAR);
       return false;
     case 1:
       return true;
@@ -292,7 +299,8 @@ bool lexer::getSpecialTokens(char ch) {
     ch = consume();
     currentLiteral += ch;
   }
-  errorReport.reportError(file, line, column, filePos, ERRORTOKEN);
+  errorHandler::getInstance().reportError(file, line, column, filePos,
+                                          ERRORTOKEN);
   return false;
 }
 
@@ -366,10 +374,12 @@ tokenId lexer::getNextToken() {
 
   case '\'': {
     if (!getCharacter()) {
-      errorReport.reportError(file, line, column, filePos, MALFORMEDCHAR);
+      errorHandler::getInstance().reportError(file, line, column, filePos,
+                                              MALFORMEDCHAR);
       return ERRORToken;
     } else if (strlen(currentLiteral.c_str()) > 1) {
-      errorReport.reportError(file, line, column, filePos, CHARLENERROR);
+      errorHandler::getInstance().reportError(file, line, column, filePos,
+                                              CHARLENERROR);
       return ERRORToken;
     }
     return CHARLiteralToken;
@@ -377,7 +387,8 @@ tokenId lexer::getNextToken() {
 
   case '\"': {
     if (!getStringLiteral()) {
-      errorReport.reportError(file, line, column, filePos, MALFORMEDSTRING);
+      errorHandler::getInstance().reportError(file, line, column, filePos,
+                                              MALFORMEDSTRING);
       return ERRORToken;
     }
     return STRINGLiteralToken;
@@ -410,6 +421,7 @@ tokenId lexer::getNextToken() {
     return IDENTIFIERToken;
   };
 
-  errorReport.reportError(file, line, column, filePos, ERRORTOKEN);
+  errorHandler::getInstance().reportError(file, line, column, filePos,
+                                          ERRORTOKEN);
   return ERRORToken;
 }

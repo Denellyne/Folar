@@ -1,5 +1,4 @@
 #pragma once
-#include "../ErrorHandler/errorHandler.h"
 #include "../Lexer/lexer.h"
 #include "../Parser/parser.h"
 
@@ -17,6 +16,5 @@ private:
 
   lexer lex;
   parser parse;
-  errorHandler errorReport;
   std::vector<expression *> expressions;
 };

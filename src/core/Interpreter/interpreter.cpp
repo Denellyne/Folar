@@ -23,7 +23,7 @@ void interpreter::parseTokens() {
     if (exprs != nullptr)
       expressions.emplace_back(exprs);
 
-    if (errorReport.gotErrors()) {
+    if (errorHandler::getInstance().gotErrors()) {
       while (expressions.empty() == false) {
         expressions[0]->dealloc();
         expressions.erase(expressions.begin());
@@ -43,21 +43,21 @@ void interpreter::parseTokens() {
 void interpreter::parseFile(std::string_view str) { return interpret(str); }
 void interpreter::interpret(std::string_view str) {
   lex.parseFile(str);
-  if (errorReport.gotErrors())
+  if (errorHandler::getInstance().gotErrors())
     return;
 
   parse.receiveTokens(lex.getTokens());
   if (!parse.createFilestream(str)) {
-    errorReport.reportError(FILEERROR, str);
+    errorHandler::getInstance().reportError(FILEERROR, str);
     return;
   }
   parseTokens();
-  if (errorReport.gotErrors())
+  if (errorHandler::getInstance().gotErrors())
     return;
   for (auto &expr : expressions) {
     std::any value = expr->getValue();
 
-    if (errorReport.gotErrors() || expr->hadBadCast()) {
+    if (errorHandler::getInstance().gotErrors() || expr->hadBadCast()) {
       badCastError(str, expr);
       return;
     }
@@ -98,7 +98,8 @@ void interpreter::badCastError(std::string_view str, expression *expr) {
 
   std::ifstream file(str.data());
   token tk = expr->getErrorLocation();
-  errorReport.reportError(file, tk.line, tk.column, tk.filePos, BADCASTERROR);
+  errorHandler::getInstance().reportError(file, tk.line, tk.column, tk.filePos,
+                                          BADCASTERROR);
   file.close();
   while (expressions.empty() == false) {
     expressions[0]->dealloc();
