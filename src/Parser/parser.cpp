@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "../ErrorHandler/errorHandler.h"
 bool parser::createFilestream(std::string_view str) {
   closeFile();
   file.clear();
@@ -72,29 +73,52 @@ void parser::synchronize() {
     advance();
   }
 }
-expression *parser::parse() {
+prog *parser::parse() {
   while (match(NEWLineToken))
     ;
   if (isEOF())
     return nullptr;
 
-  expression *exprs = declaration();
+  prog *ptr = new prog(declaration(), declaration());
   if (errorFound) {
-    if (exprs != nullptr)
-      exprs->dealloc();
+    if (!ptr)
+      delete ptr;
 
     synchronize();
     return nullptr;
   }
-  return exprs;
+  return ptr;
 }
 
-expression *parser::declaration() {
+decl *parser::declaration() {
 
-  if (match(LETToken))
-    return variableDeclaration();
+  decl *ptr = nullptr;
+  if (matchToType()) {
+    ptr = functionDeclaration();
+    if (!ptr)
+      reportError("Unable to generate AST");
+    else
+      return ptr;
+  }
+  // if (match(LETToken))
+  //   return ;
 
-  return expr();
+  return nullptr;
+}
+decl *parser::functionDeclaration() {
+  token tag = previous();
+  token id = consume(IDENTIFIERToken);
+  if (id.id == NOToken) {
+    reportError("Function has no name");
+    return nullptr;
+  }
+
+  func *fn = new func(id.literal, tag.id, statements());
+  if (!fn) {
+    reportError("Function pointer returned null");
+    return nullptr;
+  }
+  return new decl(fn);
 }
 
 expression *parser::expr() { return assignment(); }

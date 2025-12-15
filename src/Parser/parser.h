@@ -12,7 +12,7 @@ public:
       : tokens(std::move(tokens)), pos(0), errorFound(false) {}
 
   ~parser() { closeFile(); }
-  stm *parse();
+  prog *parse();
   bool createFilestream(std::string_view str);
   bool isEmpty() { return pos == tokens.size() - 1; }
   bool isEOF();
@@ -20,8 +20,8 @@ public:
   void closeFile();
 
 private:
-  stm *declaration();
-  stm *functionDeclaration();
+  decl *declaration();
+  decl *functionDeclaration();
   stm *structDeclaration();
   stm *statements();
   exp *expr();
@@ -46,6 +46,15 @@ private:
 
   template <typename... tokenId> bool match(tokenId... types) {
     for (const auto &token : {types...}) {
+      if (check(token)) {
+        advance();
+        return true;
+      }
+    }
+    return false;
+  }
+  bool matchToType() {
+    for (const auto &token : tokenTypes) {
       if (check(token)) {
         advance();
         return true;

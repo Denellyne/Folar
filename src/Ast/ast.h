@@ -1,7 +1,8 @@
 #pragma once
+#include "../Tokens/tokens.h"
 #include <string>
 #include <string_view>
-typedef enum {
+enum astOp {
   ASTPOW,
   ASTPLUS,
   ASTMINUS,
@@ -17,8 +18,9 @@ typedef enum {
   ASTGT,
   ASTLE,
   ASTGE
-} astOp;
-typedef enum {
+};
+enum expType {
+  ASTNOTYPE,
   ASTID,
   ASTNUM,
   ASTBOOL,
@@ -27,20 +29,33 @@ typedef enum {
   ASTDOUBLE,
   ASTUNARYOP,
   ASTBINOP,
-} expType;
-typedef enum {
+};
+enum stmType {
   ASTCOMPOUND,
   ASTASSIGN,
   ASTFUNCTION,
   ASTIF,
   ASTWHILE,
-} stmType;
+};
+union astToken {
+  astOp op;
+  expType exp;
+  stmType stmt;
+};
+
+astToken convertToken(tokenId tag);
+
 class exp {
 public:
-  exp(const std::string_view str, const expType tag);
+  // New Id or new String Literal
+  exp(const std::string_view str, const tokenId tag);
+  // New Float
   exp(const double v);
-  exp(const int v, const expType tag);
+  // New Int or Bool
+  exp(const int v, const tokenId tag);
+  // New BINOP
   exp(exp *lExp, const astOp op, exp *rExp);
+  // New UNARYOP
   exp(exp *expr, const astOp op);
   void printExp();
   ~exp();
@@ -63,6 +78,7 @@ public:
 
 class args {
 public:
+  // New Args
   args(exp *exp);
   void printArgs();
   void appendArg(args *newArg);
@@ -73,10 +89,15 @@ public:
 class stm {
 public:
   stmType tag;
+  // New compound statement
   stm(stm *lStm, stm *rStm);
-  stm(const std::string_view id, const int type, exp *exp);
+  // New assign statement
+  stm(const std::string_view id, const tokenId type, exp *exp);
+  // New function statement
   stm(const std::string_view id, args *args);
+  // New if statement
   stm(exp *cond, stm *thenBranch, stm *elseBranch);
+  // New while statement
   stm(exp *cond, stm *body);
   void printStm();
   ~stm();
@@ -86,7 +107,7 @@ public:
     } compound;
     struct { // for ASSIGN
       std::string id;
-      int type;
+      expType type;
       exp *expr;
     } assign;
     struct {
@@ -107,15 +128,36 @@ public:
 
 class func {
 public:
-  func(const std::string_view id, const int returnValue, stm *args);
+  func(const std::string_view id, const tokenId returnValue, stm *args);
+  ~func();
   void printFunc();
-  expType returnValue;
 
   std::string id;
-  int returnValueTag;
+  expType returnValueTag;
   int numArgs;
   stm *args;
   stm *stm;
+};
+class decl {
+public:
+  decl(func *ptr);
+  // decl(structDecl* ptr);
+  ~decl();
+  void printDecl();
+  enum { DECLFUNCTION, DECLSTRUCT } tag;
+  union {
+    func *fn;
+    // structDecl* strt;
+  } declaration;
+};
+
+class prog {
+public:
+  prog(decl *lDecl, decl *rDecl);
+  ~prog();
+  void printProg();
+  decl *lDecl;
+  decl *rDecl;
 };
 
 void printOp(astOp op);

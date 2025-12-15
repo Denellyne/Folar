@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <string>
 typedef unsigned short tokenId;
 
@@ -87,7 +88,14 @@ enum tokens {
   FLOATLiteralToken,
 };
 
-inline const std::string tokenNames[] = {
+constexpr std::array<tokens, 16> tokenTypes = {
+    INT8Token,    INT16Token,   INT32Token,    INT64Token,
+    UInt8Token,   UInt16Token,  UInt32Token,   UInt64Token,
+    CHARToken,    UCharToken,   STRINGToken,   BOOLToken,
+    FLOAT32Token, FLOAT64Token, FLOAT128Token, VOIDToken,
+};
+
+inline const std::array<const std::string, 67> tokenNames = {
     "NOToken",
     "ERRORToken",
     "NEWLineToken",

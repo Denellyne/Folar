@@ -1,9 +1,10 @@
 #include "ast.h"
 #include "../ErrorHandler/errorHandler.h"
 #include <string_view>
+astToken convertToken(tokenId tag) {}
 
-exp::exp(const std::string_view str, const expType tag) {
-  this->tag = tag;
+exp::exp(const std::string_view str, const tokenId tag)
+    : tag(convertToken(tag).exp) {
   if (tag == ASTSTRLITERAL)
     this->str = str;
   else if (tag == ASTID)
@@ -12,14 +13,8 @@ exp::exp(const std::string_view str, const expType tag) {
     errorHandler::getInstance().reportError(INVALIDAST, str);
 }
 
-exp::exp(const double v) {
-  this->tag = ASTFLOAT;
-  this->val = v;
-}
-exp::exp(const int v, const expType tag) {
-  this->tag = tag;
-  this->num = v;
-}
+exp::exp(const double v) : val(v) { this->tag = ASTFLOAT; }
+exp::exp(const int v, const tokenId tag) : num(v), tag(convertToken(tag).exp) {}
 exp::exp(exp *lExp, const astOp op, exp *rExp) {
   this->tag = ASTBINOP;
   this->binop.left = lExp;
@@ -48,23 +43,23 @@ stm::stm(stm *lStm, stm *rStm) {
   this->compound.snd = rStm;
 }
 
-stm::stm(const std::string_view id, const int type, exp *exp) {
+stm::stm(const std::string_view id, const tokenId type, exp *exp) {
 
   this->tag = ASTASSIGN;
   this->assign.id = id;
   this->assign.expr = exp;
+  expType convertedType = convertToken(type).exp;
 
-  if (type == -1)
+  if (convertedType == ASTNOTYPE)
     this->assign.type = exp->tag;
   else
-    this->assign.type = type;
+    this->assign.type = convertedType;
 }
 
 stm::stm(const std::string_view id, args *args) {
 
   this->tag = ASTFUNCTION;
   this->function.args = args;
-
   this->function.id = id;
 }
 
@@ -79,10 +74,7 @@ stm::stm(exp *cond, stm *body) {
   this->whileStmt.cond = cond;
   this->whileStmt.body = body;
 }
-args::args(exp *expr) {
-  this->arg = expr;
-  this->next = nullptr;
-}
+args::args(exp *expr) : arg(expr) { this->next = nullptr; }
 void args::appendArg(args *newArg) {
   args *head = this;
   while (head->next)
@@ -91,10 +83,65 @@ void args::appendArg(args *newArg) {
   head->next = newArg;
 }
 
-func::func(const std::string_view id, const int returnValue, class stm *args) {
-  this->id = id;
-  this->returnValueTag = returnValue;
-  this->args = args;
+func::func(const std::string_view id, const tokenId returnValue,
+           class stm *args)
+    : id(id), returnValueTag(convertToken(returnValue).exp), args(args) {}
+func::~func() {
+  if (this->args)
+    delete this->args;
+  if (this->stm)
+    delete this->stm;
+  delete this;
+}
+void func::printFunc() {
+  if (!this)
+    return;
+  printf("%s %s ", this->id.c_str(), tokenNames[this->returnValueTag].c_str());
+  printf("( ");
+  this->args->printStm();
+  printf(") ");
+  printf("( ");
+  this->stm->printStm();
+  printf(") ");
+}
+
+prog::prog(decl *lDecl, decl *rDecl) : lDecl(lDecl), rDecl(rDecl) {}
+
+prog::~prog() {
+
+  if (this->lDecl)
+    delete this->lDecl;
+  if (this->rDecl)
+    delete this->rDecl;
+  delete this;
+}
+decl::decl(func *ptr) {
+  this->tag = DECLFUNCTION;
+  this->declaration.fn = ptr;
+}
+decl::~decl() {
+  switch (this->tag) {
+
+  case DECLFUNCTION:
+    delete this->declaration.fn;
+    break;
+  case DECLSTRUCT:
+    // delete this->declaration.strt;
+    break;
+  }
+  delete this;
+}
+void decl::printDecl() {
+  if (!this)
+    return;
+  switch (this->tag) {
+  case DECLFUNCTION:
+    return this->declaration.fn->printFunc();
+    break;
+  case DECLSTRUCT:
+    // return this->declaration.strt->printStruct();
+    break;
+  }
 }
 
 void stm::printStm() {
