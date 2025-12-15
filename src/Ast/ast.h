@@ -35,8 +35,15 @@ typedef enum {
   ASTIF,
   ASTWHILE,
 } stmType;
-struct exp {
-  exp();
+class exp {
+public:
+  exp(const std::string_view str, const expType tag);
+  exp(const double v);
+  exp(const int v, const expType tag);
+  exp(exp *lExp, const astOp op, exp *rExp);
+  exp(exp *expr, const astOp op);
+  void printExp();
+  ~exp();
   expType tag;
   union {
     double val;
@@ -54,15 +61,25 @@ struct exp {
   };
 };
 
-struct args {
-  args();
+class args {
+public:
+  args(exp *exp);
+  void printArgs();
+  void appendArg(args *newArg);
   exp *arg;
   args *next;
 };
 
-struct stm {
-  stm() {}
+class stm {
+public:
   stmType tag;
+  stm(stm *lStm, stm *rStm);
+  stm(const std::string_view id, const int type, exp *exp);
+  stm(const std::string_view id, args *args);
+  stm(exp *cond, stm *thenBranch, stm *elseBranch);
+  stm(exp *cond, stm *body);
+  void printStm();
+  ~stm();
   union {
     struct { // for COMPOUND
       stm *fst, *snd;
@@ -88,8 +105,10 @@ struct stm {
   };
 };
 
-struct func {
-  func();
+class func {
+public:
+  func(const std::string_view id, const int returnValue, stm *args);
+  void printFunc();
   expType returnValue;
 
   std::string id;
@@ -99,28 +118,4 @@ struct func {
   stm *stm;
 };
 
-exp *mkStringLiteral(const std::string_view stringLiteral);
-exp *mkId(const std::string_view id);
-exp *mkBool(const int b);
-exp *mkNum(const int v);
-exp *mkFloat(const double v);
-exp *mkBinOp(exp *lExp, const astOp op, exp *rExp);
-exp *mkUnaryOp(exp *exp, const astOp op);
-stm *mkCompound(stm *lStm, stm *rStm);
-stm *mkAssign(const std::string_view id, const int type, exp *exp);
-stm *mkIncr(const std::string_view id);
-stm *mkArgList(args *);
-stm *mkFuncCall(const std::string_view id, args *args);
-stm *mkIf(exp *cond, stm *thenBranch, stm *elseifBranch, stm *elseBranch);
-stm *mkWhile(exp *cond, stm *body);
-
-args *mkArg(exp *expr);
-args *appendArgs(args *root, args *newArg);
-
-func *mkFunc(const std::string_view id, const int returnValue, stm *args);
-
-void printStm(stm *);
-void printExp(exp *);
 void printOp(astOp op);
-void printFunc(func *);
-void printArgs(args *);

@@ -7,23 +7,13 @@ compiler::~compiler() {
 }
 void compiler::parseTokens() {
 
-  std::vector<expression *> expressions;
-
-  while (!parse.isEOF()) {
-    expression *exprs = parse.parse();
-    if (exprs != nullptr)
-      expressions.emplace_back(exprs);
-  }
+  stm *stms = parse.parse();
+  if (!stms)
+    return;
 #ifdef DEBUG
-  std::cout << "Number of expressions: " << expressions.size() << '\n';
+  printStm(stms);
 #endif
-  while (expressions.empty() == false) {
-#ifdef DEBUG
-    expressions[0]->print();
-#endif
-    expressions[0]->dealloc();
-    expressions.erase(expressions.begin());
-  }
+  delete stms;
 }
 
 void compiler::parseFile(std::string_view str) { return compile(str); }
