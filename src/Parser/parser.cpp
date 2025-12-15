@@ -1,10 +1,4 @@
 #include "parser.h"
-#include "Rules/Expressions/binaryExpr.h"
-#include "Rules/Expressions/groupingExpr.h"
-#include "Rules/Expressions/literalExpr.h"
-#include "Rules/Expressions/unaryExpr.h"
-#include "Rules/Expressions/variableExpr.h"
-#include "Rules/expressions.h"
 bool parser::createFilestream(std::string_view str) {
   closeFile();
   file.clear();

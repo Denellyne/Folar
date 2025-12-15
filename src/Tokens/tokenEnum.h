@@ -34,6 +34,7 @@ enum tokens {
   ASSIGNToken,
   POINTERToken,
   // Misc
+  MAINToken,
   FUNCTIONToken,
   MUTABLEToken,
   IDENTIFIERToken,
@@ -113,6 +114,7 @@ inline const std::string tokenNames[] = {
     "MODULUSToken",
     "ASSIGNToken",
     "POINTERToken",
+    "MAINToken",
     "FUNCTIONToken",
     "MUTABLEToken",
     "IDENTIFIERToken",

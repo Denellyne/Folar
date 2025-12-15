@@ -1,6 +1,9 @@
 #pragma once
-#include "Rules/expressions.h"
 
+#include "../Ast/ast.h"
+#include "../Tokens/tokens.h"
+#include <fstream>
+#include <vector>
 class parser {
 
 public:
@@ -9,7 +12,7 @@ public:
       : tokens(std::move(tokens)), pos(0), errorFound(false) {}
 
   ~parser() { closeFile(); }
-  expression *parse();
+  stm *parse();
   bool createFilestream(std::string_view str);
   bool isEmpty() { return pos == tokens.size() - 1; }
   bool isEOF();
@@ -17,16 +20,20 @@ public:
   void closeFile();
 
 private:
-  expression *declaration();
-  expression *expr();
-  expression *assignment();
-  expression *equality();
-  expression *comparison();
-  expression *term();
-  expression *factor();
-  expression *unary();
-  expression *primary();
-  expression *variableDeclaration();
+  stm *declaration();
+  stm *functionDeclaration();
+  stm *structDeclaration();
+  stm *statements();
+  exp *expr();
+  exp *bitwise();
+  exp *orExp();
+  exp *andExp();
+  exp *relExp();
+  exp *addExp();
+  exp *mulExp();
+  exp *powExp();
+  exp *unaryExp();
+  exp *primary();
   token consume(tokenId tk);
   bool check(tokenId token);
   token peek();
