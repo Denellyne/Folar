@@ -13,7 +13,7 @@ struct token {
         unsigned filePos)
       : id(id), line(line), column(column), literal(std::move(literal)),
         filePos(filePos) {}
-  void setLiteral(std::string &str) { literal = std::move(str); }
+  void setLiteral(const std::string &str) { literal = std::move(str); }
 
   unsigned line = 0;
   unsigned column = 0;

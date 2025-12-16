@@ -71,7 +71,7 @@ public:
     } binop;
     struct {
       astOp op;
-      exp *exp;
+      exp *expr;
     } unaryop;
   };
 };
@@ -111,7 +111,7 @@ public:
       exp *expr;
     } assign;
     struct {
-      args *args;
+      args *arg;
       std::string id;
     } function;
     struct { // for IF
@@ -136,11 +136,11 @@ public:
   expType returnValueTag;
   int numArgs;
   stm *args;
-  stm *stm;
+  stm *stmt;
 };
 class decl {
 public:
-  decl(func *ptr);
+  decl(func *ptr, decl *decl);
   // decl(structDecl* ptr);
   ~decl();
   void printDecl();
@@ -149,15 +149,7 @@ public:
     func *fn;
     // structDecl* strt;
   } declaration;
-};
-
-class prog {
-public:
-  prog(decl *lDecl, decl *rDecl);
-  ~prog();
-  void printProg();
-  decl *lDecl;
-  decl *rDecl;
+  decl *next;
 };
 
 void printOp(astOp op);

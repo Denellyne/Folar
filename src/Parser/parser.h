@@ -12,18 +12,22 @@ public:
       : tokens(std::move(tokens)), pos(0), errorFound(false) {}
 
   ~parser() { closeFile(); }
-  prog *parse();
+  decl *parse();
   bool createFilestream(std::string_view str);
   bool isEmpty() { return pos == tokens.size() - 1; }
   bool isEOF();
   void receiveTokens(const std::vector<token> &token);
-  void closeFile();
 
 private:
+  void closeFile();
+
   decl *declaration();
-  decl *functionDeclaration();
+  func *functionDeclaration();
   stm *structDeclaration();
   stm *statements();
+  stm *assignStatement();
+  stm *ifStatement();
+  stm *whileStatement();
   exp *expr();
   exp *bitwise();
   exp *orExp();

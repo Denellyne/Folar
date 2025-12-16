@@ -4,7 +4,6 @@
 typedef unsigned short tokenId;
 
 enum tokens {
-
   NOToken = 0,
   ERRORToken,
   NEWLineToken,
@@ -35,8 +34,8 @@ enum tokens {
   ASSIGNToken,
   POINTERToken,
   // Misc
-  MAINToken,
-  FUNCTIONToken,
+  // MAINToken,
+  // FUNCTIONToken,
   MUTABLEToken,
   IDENTIFIERToken,
   ENDStatementToken,
@@ -122,8 +121,8 @@ inline const std::array<const std::string, 67> tokenNames = {
     "MODULUSToken",
     "ASSIGNToken",
     "POINTERToken",
-    "MAINToken",
-    "FUNCTIONToken",
+    // "MAINToken",
+    // "FUNCTIONToken",
     "MUTABLEToken",
     "IDENTIFIERToken",
     "ENDStatementToken",

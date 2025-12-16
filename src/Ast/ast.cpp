@@ -1,7 +1,16 @@
 #include "ast.h"
 #include "../ErrorHandler/errorHandler.h"
 #include <string_view>
-astToken convertToken(tokenId tag) {}
+astToken convertToken(tokenId tag) {
+  astToken a;
+  switch (tag) {
+  case INT8Token:
+  retuINT8Token:
+    a.exp = ASTNUM;
+    break;
+  }
+  return a;
+}
 
 exp::exp(const std::string_view str, const tokenId tag)
     : tag(convertToken(tag).exp) {
@@ -17,40 +26,39 @@ exp::exp(const double v) : val(v) { this->tag = ASTFLOAT; }
 exp::exp(const int v, const tokenId tag) : num(v), tag(convertToken(tag).exp) {}
 exp::exp(exp *lExp, const astOp op, exp *rExp) {
   this->tag = ASTBINOP;
-  this->binop.left = lExp;
-  this->binop.right = rExp;
+  this->binop.left = std::move(lExp);
+  this->binop.right = std::move(rExp);
   this->binop.op = op;
 }
 
 exp::exp(exp *expr, const astOp op) {
   this->tag = ASTUNARYOP;
   this->unaryop.op = op;
-  this->unaryop.exp = expr;
+  this->unaryop.expr = std::move(expr);
 }
 exp::~exp() {
   if (this->tag == ASTBINOP) {
     delete this->binop.left;
     delete this->binop.right;
   } else if (this->tag == ASTUNARYOP)
-    delete this->unaryop.exp;
-  delete this;
+    delete this->unaryop.expr;
 }
 
 stm::stm(stm *lStm, stm *rStm) {
 
   this->tag = ASTCOMPOUND;
-  this->compound.fst = lStm;
-  this->compound.snd = rStm;
+  this->compound.fst = std::move(lStm);
+  this->compound.snd = std::move(rStm);
 }
 
 stm::stm(const std::string_view id, const tokenId type, exp *exp) {
 
   this->tag = ASTASSIGN;
   this->assign.id = id;
-  this->assign.expr = exp;
+  this->assign.expr = std::move(exp);
   expType convertedType = convertToken(type).exp;
 
-  if (convertedType == ASTNOTYPE)
+  if (convertedType == ASTNOTYPE && exp)
     this->assign.type = exp->tag;
   else
     this->assign.type = convertedType;
@@ -59,20 +67,53 @@ stm::stm(const std::string_view id, const tokenId type, exp *exp) {
 stm::stm(const std::string_view id, args *args) {
 
   this->tag = ASTFUNCTION;
-  this->function.args = args;
+  this->function.arg = std::move(args);
   this->function.id = id;
 }
 
 stm::stm(exp *cond, stm *thenBranch, stm *elseBranch) {
   this->tag = ASTIF;
   this->ifStmt.cond = cond;
-  this->ifStmt.thenBranch = thenBranch;
-  this->ifStmt.elseBranch = elseBranch;
+  this->ifStmt.thenBranch = std::move(thenBranch);
+  this->ifStmt.elseBranch = std::move(elseBranch);
 }
 stm::stm(exp *cond, stm *body) {
   this->tag = ASTWHILE;
-  this->whileStmt.cond = cond;
-  this->whileStmt.body = body;
+  this->whileStmt.cond = std::move(cond);
+  this->whileStmt.body = std::move(body);
+}
+
+stm::~stm() {
+  switch (this->tag) {
+  case ASTCOMPOUND:
+    if (this->compound.fst)
+      delete this->compound.fst;
+    if (this->compound.snd)
+      delete this->compound.snd;
+    break;
+  case ASTASSIGN:
+    if (this->assign.expr)
+      delete this->assign.expr;
+    break;
+  case ASTFUNCTION:
+    if (this->function.arg)
+      delete this->function.arg;
+    break;
+  case ASTIF:
+    if (this->ifStmt.cond)
+      delete this->ifStmt.cond;
+    if (this->ifStmt.thenBranch)
+      delete this->ifStmt.thenBranch;
+    if (this->ifStmt.elseBranch)
+      delete this->ifStmt.elseBranch;
+    break;
+  case ASTWHILE:
+    if (this->whileStmt.cond)
+      delete this->whileStmt.cond;
+    if (this->whileStmt.body)
+      delete this->whileStmt.body;
+    break;
+  }
 }
 args::args(exp *expr) : arg(expr) { this->next = nullptr; }
 void args::appendArg(args *newArg) {
@@ -80,68 +121,59 @@ void args::appendArg(args *newArg) {
   while (head->next)
     head = head->next;
 
-  head->next = newArg;
+  head->next = std::move(newArg);
 }
 
-func::func(const std::string_view id, const tokenId returnValue,
-           class stm *args)
+func::func(const std::string_view id, const tokenId returnValue, stm *args)
     : id(id), returnValueTag(convertToken(returnValue).exp), args(args) {}
+
 func::~func() {
   if (this->args)
     delete this->args;
-  if (this->stm)
-    delete this->stm;
-  delete this;
+  if (this->stmt)
+    delete this->stmt;
 }
+
 void func::printFunc() {
   if (!this)
     return;
-  printf("%s %s ", this->id.c_str(), tokenNames[this->returnValueTag].c_str());
+  printf("%s %u ", this->id.c_str(), this->returnValueTag);
   printf("( ");
   this->args->printStm();
   printf(") ");
   printf("( ");
-  this->stm->printStm();
+  this->stmt->printStm();
   printf(") ");
 }
 
-prog::prog(decl *lDecl, decl *rDecl) : lDecl(lDecl), rDecl(rDecl) {}
-
-prog::~prog() {
-
-  if (this->lDecl)
-    delete this->lDecl;
-  if (this->rDecl)
-    delete this->rDecl;
-  delete this;
-}
-decl::decl(func *ptr) {
+decl::decl(func *fn, decl *ptr) : next(std::move(ptr)) {
   this->tag = DECLFUNCTION;
-  this->declaration.fn = ptr;
+  this->declaration.fn = std::move(fn);
 }
 decl::~decl() {
   switch (this->tag) {
 
   case DECLFUNCTION:
-    delete this->declaration.fn;
+    if (this->declaration.fn)
+      delete this->declaration.fn;
     break;
   case DECLSTRUCT:
     // delete this->declaration.strt;
     break;
   }
-  delete this;
 }
 void decl::printDecl() {
   if (!this)
     return;
   switch (this->tag) {
   case DECLFUNCTION:
-    return this->declaration.fn->printFunc();
+    this->declaration.fn->printFunc();
     break;
   case DECLSTRUCT:
-    // return this->declaration.strt->printStruct();
+    //  this->declaration.strt->printStruct();
     break;
   }
+  return this->next->printDecl();
 }
 
 void stm::printStm() {
@@ -187,7 +219,7 @@ void stm::printStm() {
   case ASTFUNCTION: {
     printf("%s", this->function.id.c_str());
     printf("(");
-    this->function.args->printArgs();
+    this->function.arg->printArgs();
     printf(")");
   } break;
   case ASTIF: {
@@ -253,7 +285,7 @@ void exp::printExp() {
   case ASTUNARYOP:
     printf("(");
     printOp(this->unaryop.op);
-    this->unaryop.exp->printExp();
+    this->unaryop.expr->printExp();
     printf(")");
     break;
   case ASTSTRLITERAL:

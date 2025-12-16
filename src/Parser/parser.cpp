@@ -12,11 +12,12 @@ bool parser::createFilestream(std::string_view str) {
   return true;
 }
 void parser::closeFile() {
-  file.clear();
-  file.seekg(0, std::ios::beg);
-  file.close();
-  while (file.is_open())
-    ;
+  // file.clear();
+  // file.seekg(0, std::ios::beg);
+  if (file.is_open())
+    file.close();
+  // while (file.is_open())
+  //   ;
 }
 void parser::reportError(unsigned errorType) {
   errorFound = true;
@@ -73,15 +74,15 @@ void parser::synchronize() {
     advance();
   }
 }
-prog *parser::parse() {
+decl *parser::parse() {
   while (match(NEWLineToken))
     ;
   if (isEOF())
     return nullptr;
 
-  prog *ptr = new prog(declaration(), declaration());
+  decl *ptr = declaration();
   if (errorFound) {
-    if (!ptr)
+    if (ptr)
       delete ptr;
 
     synchronize();
@@ -94,22 +95,32 @@ decl *parser::declaration() {
 
   decl *ptr = nullptr;
   if (matchToType()) {
-    ptr = functionDeclaration();
+    ptr = new decl(functionDeclaration(), declaration());
     if (!ptr)
       reportError("Unable to generate AST");
     else
       return ptr;
   }
-  // if (match(LETToken))
-  //   return ;
 
   return nullptr;
 }
-decl *parser::functionDeclaration() {
+func *parser::functionDeclaration() {
   token tag = previous();
   token id = consume(IDENTIFIERToken);
   if (id.id == NOToken) {
     reportError("Function has no name");
+    return nullptr;
+  }
+  if (!match(LCurlyBracketToken)) {
+    reportError("No Left arg bracket");
+    return nullptr;
+  }
+  if (!match(RCurlyBracketToken)) {
+    reportError("No Right arg bracket");
+    return nullptr;
+  }
+  if (!match(LBracketToken)) {
+    reportError("No Left definition bracket");
     return nullptr;
   }
 
@@ -118,236 +129,278 @@ decl *parser::functionDeclaration() {
     reportError("Function pointer returned null");
     return nullptr;
   }
-  return new decl(fn);
-}
-
-expression *parser::expr() { return assignment(); }
-
-expression *parser::assignment() {
-  expression *expr = equality();
-
-  if (match(ASSIGNToken)) {
-    expression *value = assignment();
-    if (dynamic_cast<literalExpr *>(expr) != nullptr) {
-
-      variableExpr *var =
-          new variableExpr(token(NOToken, 0, 0, 0), value,
-                           dynamic_cast<literalExpr *>(expr)->literal.str);
-
-      if (expr)
-        expr->dealloc();
-      expr = nullptr;
-
-      if (consume(ENDStatementToken).id == NOToken) {
-        if (var)
-          var->dealloc();
-        var = nullptr;
-        reportError("End of statement not found");
-        return nullptr;
-      }
-      return var;
-    }
-    if (expr)
-      expr->dealloc();
-
-    if (value)
-      value->dealloc();
-
-    value = nullptr;
-    expr = nullptr;
-    reportError("Invalid assignment");
+  if (!match(RBracketToken)) {
+    delete fn;
+    reportError("No Right definiton bracket");
     return nullptr;
   }
-
-  return expr;
+  return fn;
 }
 
-expression *parser::equality() {
-  expression *expr = comparison();
-
-  while (match(NOTEQUALToken, EQUALToken)) {
-    token operatr = previous();
-    expression *right = comparison();
-    expr = new binaryExpr(operatr, expr, right);
-  }
-
-  return expr;
-}
-
-expression *parser::comparison() {
-  expression *expr = term();
-
-  while (match(GREATToken, GREATEQUALToken, LESSEQUALToken, LESSToken)) {
-    token operatr = previous();
-    expression *right = term();
-    expr = new binaryExpr(operatr, expr, right);
-  }
-
-  return expr;
-}
-
-expression *parser::term() {
-  expression *expr = factor();
-
-  while (match(ADDToken, SUBToken)) {
-    token operatr = previous();
-    expression *right = factor();
-    expr = new binaryExpr(operatr, expr, right);
-  }
-
-  return expr;
-}
-expression *parser::factor() {
-  expression *expr = unary();
-
-  while (match(MULTIPLYToken, DIVIDEToken)) {
-    token operatr = previous();
-    expression *right = unary();
-    expr = new binaryExpr(operatr, expr, right);
-  }
-
-  return expr;
-}
-expression *parser::unary() {
-
-  if (match(SUBToken, NOTToken)) {
-    token operatr = previous();
-    expression *right = unary();
-    return new unaryExpr(operatr, right);
-  }
-
-  return primary();
-}
-
-expression *parser::primary() {
-  if (match(FALSEToken))
-    return new literalExpr(FALSEToken);
-  if (match(TRUEToken))
-    return new literalExpr(TRUEToken);
-  if (match(NULLToken))
-    return new literalExpr(NULLToken);
-  if (match(STRINGLiteralToken, FLOATLiteralToken, NUMBERLiteralToken,
-            IDENTIFIERToken, CHARLiteralToken)) {
-    literalExpr *exprs = new literalExpr(previous().id, previous().literal);
-
-    if (exprs->terminal == ERRORToken) {
-      if (exprs != nullptr)
-        exprs->dealloc();
-
-      reportError("Couldn't find terminal token");
+stm *parser::statements() {
+  stm *stmt = nullptr;
+  if (match(LETToken, IDENTIFIERToken)) {
+    if (previous().id == LETToken)
+      advance();
+    stmt = new stm(assignStatement(), statements());
+    if (!stmt) {
+      reportError("Unable to generate assign statement");
       return nullptr;
     }
-    return exprs;
+    // } else if (match(IFToken)) {
+    //   stmt = new stm(ifStatement(), statements());
+    //   if (!stmt) {
+    //     reportError("Unable to generate assign statement");
+    //     return nullptr;
+    //   }
+    //
+    // } else if (match(WHILEToken)) {
+    //   stmt = new stm(whileStatement(), statements());
+    //   if (!stmt) {
+    //     reportError("Unable to generate assign statement");
+    //     return nullptr;
+    //   }
+    return stmt;
   }
-  // if (match(ENDStatementToken))
-  // return new literalExpr(ENDStatementToken);
-  if (match(LCurlyBracketToken)) {
-    expression *exprs = declaration();
-    if (consume(RCurlyBracketToken).id == NOToken) {
-      if (exprs != nullptr)
-        exprs->dealloc();
-
-      reportError("Expected )");
-      return nullptr;
-    }
-    return new groupingExpr(exprs);
-  }
-  if (match(LBracketToken)) {
-
-    expression *exprs = declaration();
-    if (consume(RBracketToken).id == NOToken) {
-      if (exprs != nullptr)
-        exprs->dealloc();
-
-      reportError("Expected }");
-      return nullptr;
-    }
-    return new groupingExpr(exprs);
-  }
-  if (match(LRectBracketToken)) {
-    expression *exprs = declaration();
-    if (consume(RRectBracketToken).id == NOToken) {
-      if (exprs != nullptr)
-        exprs->dealloc();
-
-      reportError("Expected ]");
-      return nullptr;
-    }
-    return new groupingExpr(exprs);
-  }
-  reportError(MALFORMEDEXPR);
   return nullptr;
 }
 
-expression *parser::variableDeclaration() {
+stm *parser::assignStatement() {
+  token id = previous();
+  printf("%s\n", id.literal.c_str());
+  if (id.id != IDENTIFIERToken) {
+    reportError("No name for variable given");
+    return nullptr;
+  }
+  if (consume(TYPEIdentifierToken).id == NOToken) {
+    reportError("No type identification found for variable");
+    return nullptr;
+  }
+  if (!matchToType()) {
+    reportError("No type identification found for variable");
+    return nullptr;
+  }
+  token type = previous();
 
-  if (match(MUTABLEToken)) {
-    token identifier = advance();
-    if (identifier.id != IDENTIFIERToken) {
-      reportError("Expected variable name");
-      return nullptr;
-    }
-    if (consume(TYPEIdentifierToken).id == NOToken) {
-      reportError("Expected : after variable name");
+  if (match(ASSIGNToken)) {
+    // exp *value = expr();
+    exp *value = nullptr;
+    stm *stmt = new stm(id.literal, type.id, value);
+
+    if (!stmt) {
+      reportError("Unable to assign to expression");
       return nullptr;
     }
 
-    token tk = advance();
-    if (tk.id < INT8Token || tk.id > FLOAT128Token) {
-      const std::string str =
-          "Expected type for variable,got instead " + tokenNames[tk.id];
-      reportError(str);
-      return nullptr;
+    if (value) {
+      delete value;
+      value = nullptr;
     }
-    expression *exprs = nullptr;
-    if (match(ASSIGNToken)) {
-      exprs = equality();
-      if (exprs == nullptr) {
-        reportError("Expected expression after =");
-        return nullptr;
-      }
-    }
+
     if (consume(ENDStatementToken).id == NOToken) {
-      if (exprs)
-        exprs->dealloc();
+      if (stmt)
+        delete stmt;
       reportError("End of statement not found");
       return nullptr;
     }
 
-    return new variableExpr(tk, exprs, identifier.literal, true);
-  }
-
-  token identifier = advance();
-  if (identifier.id != IDENTIFIERToken) {
-    reportError("Expected variable name");
-    return nullptr;
-  }
-  if (consume(TYPEIdentifierToken).id == NOToken) {
-    reportError("Expected : after variable name");
-    return nullptr;
-  }
-
-  token tk = advance();
-  if (tk.id < INT8Token || tk.id > FLOAT128Token) {
-    const std::string str =
-        "Expected type for variable,got instead " + tokenNames[tk.id];
-    reportError(str);
-    return nullptr;
-  }
-  if (consume(ASSIGNToken).id == NOToken) {
-    reportError(
-        "Can't initialize const variable without assigning to expression");
-    return nullptr;
-  }
-  expression *exprs = equality();
-  if (exprs == nullptr) {
-    reportError("Expected expression after =");
-    return nullptr;
+    return stmt;
   }
   if (consume(ENDStatementToken).id == NOToken) {
-    exprs->dealloc();
     reportError("End of statement not found");
     return nullptr;
   }
-  return new variableExpr(tk, exprs, identifier.literal);
+
+  return new stm(id.literal, type.id, nullptr);
 }
+// exp *parser::expr() { return bitwise(); }
+
+// exp *parser::equality() {
+//   exp *expr = comparison();
+//
+//   while (match(NOTEQUALToken, EQUALToken)) {
+//     token operatr = previous();
+//     exp *right = comparison();
+//     expr = new binaryExpr(operatr, expr, right);
+//   }
+//
+//   return expr;
+// }
+//
+// exp *parser::comparison() {
+//   exp *expr = term();
+//
+//   while (match(GREATToken, GREATEQUALToken, LESSEQUALToken, LESSToken)) {
+//     token operatr = previous();
+//     exp *right = term();
+//     expr = new binaryExpr(operatr, expr, right);
+//   }
+//
+//   return expr;
+// }
+//
+// exp *parser::term() {
+//   exp *expr = factor();
+//
+//   while (match(ADDToken, SUBToken)) {
+//     token operatr = previous();
+//     exp *right = factor();
+//     expr = new binaryExpr(operatr, expr, right);
+//   }
+//
+//   return expr;
+// }
+// exp *parser::factor() {
+//   exp *expr = unary();
+//
+//   while (match(MULTIPLYToken, DIVIDEToken)) {
+//     token operatr = previous();
+//     exp *right = unary();
+//     expr = new binaryExpr(operatr, expr, right);
+//   }
+//
+//   return expr;
+// }
+// exp *parser::unary() {
+//
+//   if (match(SUBToken, NOTToken)) {
+//     token operatr = previous();
+//     exp *right = unary();
+//     return new unaryExpr(operatr, right);
+//   }
+//
+//   return primary();
+// }
+//
+// exp *parser::primary() {
+//   if (match(FALSEToken))
+//     return new literalExpr(FALSEToken);
+//   if (match(TRUEToken))
+//     return new literalExpr(TRUEToken);
+//   if (match(NULLToken))
+//     return new literalExpr(NULLToken);
+//   if (match(STRINGLiteralToken, FLOATLiteralToken, NUMBERLiteralToken,
+//             IDENTIFIERToken, CHARLiteralToken)) {
+//     literalExpr *exprs = new literalExpr(previous().id, previous().literal);
+//
+//     if (exprs->terminal == ERRORToken) {
+//       if (exprs != nullptr)
+//         exprs->dealloc();
+//
+//       reportError("Couldn't find terminal token");
+//       return nullptr;
+//     }
+//     return exprs;
+//   }
+//   // if (match(ENDStatementToken))
+//   // return new literalExpr(ENDStatementToken);
+//   if (match(LCurlyBracketToken)) {
+//     exp *exprs = declaration();
+//     if (consume(RCurlyBracketToken).id == NOToken) {
+//       if (exprs != nullptr)
+//         exprs->dealloc();
+//
+//       reportError("Expected )");
+//       return nullptr;
+//     }
+//     return new groupingExpr(exprs);
+//   }
+//   if (match(LBracketToken)) {
+//
+//     exp *exprs = declaration();
+//     if (consume(RBracketToken).id == NOToken) {
+//       if (exprs != nullptr)
+//         exprs->dealloc();
+//
+//       reportError("Expected }");
+//       return nullptr;
+//     }
+//     return new groupingExpr(exprs);
+//   }
+//   if (match(LRectBracketToken)) {
+//     exp *exprs = declaration();
+//     if (consume(RRectBracketToken).id == NOToken) {
+//       if (exprs != nullptr)
+//         exprs->dealloc();
+//
+//       reportError("Expected ]");
+//       return nullptr;
+//     }
+//     return new groupingExpr(exprs);
+//   }
+//   reportError(MALFORMEDEXPR);
+//   return nullptr;
+// }
+//
+// exp *parser::variableDeclaration() {
+//
+//   if (match(MUTABLEToken)) {
+//     token identifier = advance();
+//     if (identifier.id != IDENTIFIERToken) {
+//       reportError("Expected variable name");
+//       return nullptr;
+//     }
+//     if (consume(TYPEIdentifierToken).id == NOToken) {
+//       reportError("Expected : after variable name");
+//       return nullptr;
+//     }
+//
+//     token tk = advance();
+//     if (tk.id < INT8Token || tk.id > FLOAT128Token) {
+//       const std::string str =
+//           "Expected type for variable,got instead " + tokenNames[tk.id];
+//       reportError(str);
+//       return nullptr;
+//     }
+//     exp *exprs = nullptr;
+//     if (match(ASSIGNToken)) {
+//       exprs = equality();
+//       if (exprs == nullptr) {
+//         reportError("Expected expression after =");
+//         return nullptr;
+//       }
+//     }
+//     if (consume(ENDStatementToken).id == NOToken) {
+//       if (exprs)
+//         exprs->dealloc();
+//       reportError("End of statement not found");
+//       return nullptr;
+//     }
+//
+//     return new variableExpr(tk, exprs, identifier.literal, true);
+//   }
+//
+//   token identifier = advance();
+//   if (identifier.id != IDENTIFIERToken) {
+//     reportError("Expected variable name");
+//     return nullptr;
+//   }
+//   if (consume(TYPEIdentifierToken).id == NOToken) {
+//     reportError("Expected : after variable name");
+//     return nullptr;
+//   }
+//
+//   token tk = advance();
+//   if (tk.id < INT8Token || tk.id > FLOAT128Token) {
+//     const std::string str =
+//         "Expected type for variable,got instead " + tokenNames[tk.id];
+//     reportError(str);
+//     return nullptr;
+//   }
+//   if (consume(ASSIGNToken).id == NOToken) {
+//     reportError(
+//         "Can't initialize const variable without assigning to expression");
+//     return nullptr;
+//   }
+//   exp *exprs = equality();
+//   if (exprs == nullptr) {
+//     reportError("Expected expression after =");
+//     return nullptr;
+//   }
+//   if (consume(ENDStatementToken).id == NOToken) {
+//     exprs->dealloc();
+//     reportError("End of statement not found");
+//     return nullptr;
+//   }
+//   return new variableExpr(tk, exprs, identifier.literal);
+// }

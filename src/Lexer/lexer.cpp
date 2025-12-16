@@ -1,13 +1,14 @@
 #include "lexer.h"
-#include <cstring>
 #include <iostream>
+#include <string.h>
 
 void lexer::closeFile() {
-  file.clear();
-  file.seekg(0, std::ios::beg);
-  file.close();
-  while (file.is_open())
-    ;
+  // file.clear();
+  // file.seekg(0, std::ios::beg);
+  if (file.is_open())
+    file.close();
+  // while (file.is_open())
+  //   ;
 }
 bool lexer::parseFile(std::string_view str) {
   if (!openFile(str))
@@ -58,8 +59,8 @@ bool lexer::parseFile(std::string_view str) {
   std::cout << str << " parsed\n";
 #endif
 #ifdef DEBUG
-  for (const auto &tk : tokens)
-    std::cout << tk << '\n';
+  // for (const auto &tk : tokens)
+  //   std::cout << tk << '\n';
 #endif // DEBUG
   closeFile();
   return !errorFound;
@@ -206,6 +207,19 @@ bool lexer::getCharacter() {
   }
 }
 
+bool lexer::getIdentifier() {
+  currentLiteral.clear();
+  char c;
+  while (true) {
+    c = consume();
+    if (c == ' ' || c == ';')
+      return true;
+    else if (c == '\n' || c == EOF || c == '"' || c == '\\')
+      return false;
+    else
+      currentLiteral += c;
+  }
+}
 bool lexer::getStringLiteral() {
   currentLiteral.clear();
   char c;
@@ -406,7 +420,6 @@ tokenId lexer::getNextToken() {
       int returnValue = getNumberLiteral(ch);
       if (returnValue == 0)
         return ERRORToken;
-
       else if (returnValue == 1)
         return NUMBERLiteralToken;
 
@@ -417,6 +430,9 @@ tokenId lexer::getNextToken() {
 
     if (auto keyword = keywords.find(currentLiteral); keyword != keywords.end())
       return keyword->second;
+    if (!getIdentifier())
+      errorHandler::getInstance().reportError(file, line, column, filePos,
+                                              ERRORToken);
 
     return IDENTIFIERToken;
   };

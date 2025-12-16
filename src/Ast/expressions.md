@@ -3,7 +3,7 @@
 declarations ->  functionDeclaration{declarations*} | structDeclaration{declarations*}
 functionDeclaration ->  type identifier (( {NOTHING} | (type identifier,)*(type identifier) )) {statements*}
 statements -> compoundStm | assignStm  | ifStm | whileStm 
-assignStm -> let identifier (: type = expression | mut : type (= expression)?) ; 
+assignStm -> let identifier (: type = expression | mut : type (= expression)?); | identifier = expression;
 compoundStm -> statements(statements?)
 ifStm -> if expression {statements} (else statements)?
 whileStm -> while expression {statements}

@@ -1,19 +1,16 @@
 #include "compiler.h"
 
 compiler::compiler(std::string_view str) { compile(str); }
-compiler::~compiler() {
-  lex.closeFile();
-  parse.closeFile();
-}
+compiler::~compiler() {}
 void compiler::parseTokens() {
 
-  stm *stms = parse.parse();
-  if (!stms)
+  decl *program = parse.parse();
+  if (!program)
     return;
 #ifdef DEBUG
-  printStm(stms);
+  program->printDecl();
 #endif
-  delete stms;
+  delete program;
 }
 
 void compiler::parseFile(std::string_view str) { return compile(str); }

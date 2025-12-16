@@ -1,6 +1,6 @@
-#include "core/Compiler/compiler.h"
-#include "core/ErrorHandler/errorHandler.h"
-#include "core/Interpreter/interpreter.h"
+#include "Compiler/compiler.h"
+#include "ErrorHandler/errorHandler.h"
+#include <iostream>
 #ifdef FUZZER
 #include "fuzz_target.cc"
 #endif // FUZZER
