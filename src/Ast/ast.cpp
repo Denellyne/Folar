@@ -1,6 +1,8 @@
 #include "ast.h"
 #include "../ErrorHandler/errorHandler.h"
-#include <string_view>
+#include <cstring>
+#include <iostream>
+#include <string>
 astToken convertToken(tokenId tag) {
   astToken a;
   switch (tag) {
@@ -12,12 +14,12 @@ astToken convertToken(tokenId tag) {
   return a;
 }
 
-exp::exp(const std::string_view str, const tokenId tag)
+exp::exp(const std::string &str, const tokenId tag)
     : tag(convertToken(tag).exp) {
-  if (tag == ASTSTRLITERAL)
-    this->str = str;
-  else if (tag == ASTID)
-    this->id = str;
+  if (this->tag == ASTSTRLITERAL)
+    this->str = strdup(str.c_str());
+  else if (this->tag == ASTID)
+    this->id = strdup(str.c_str());
   else
     errorHandler::getInstance().reportError(INVALIDAST, str);
 }
@@ -42,6 +44,10 @@ exp::~exp() {
     delete this->binop.right;
   } else if (this->tag == ASTUNARYOP)
     delete this->unaryop.expr;
+  else if (this->tag == ASTSTRLITERAL)
+    free(this->str);
+  else if (this->tag == ASTID)
+    free(this->id);
 }
 
 stm::stm(stm *lStm, stm *rStm) {
@@ -51,10 +57,10 @@ stm::stm(stm *lStm, stm *rStm) {
   this->compound.snd = std::move(rStm);
 }
 
-stm::stm(const std::string_view id, const tokenId type, exp *exp) {
+stm::stm(const std::string &id, const tokenId type, exp *exp) {
 
   this->tag = ASTASSIGN;
-  this->assign.id = id;
+  this->assign.id = strdup(id.c_str());
   this->assign.expr = std::move(exp);
   expType convertedType = convertToken(type).exp;
 
@@ -64,11 +70,11 @@ stm::stm(const std::string_view id, const tokenId type, exp *exp) {
     this->assign.type = convertedType;
 }
 
-stm::stm(const std::string_view id, args *args) {
+stm::stm(const std::string &id, args *args) {
 
   this->tag = ASTFUNCTION;
   this->function.arg = std::move(args);
-  this->function.id = id;
+  this->function.id = strdup(id.c_str());
 }
 
 stm::stm(exp *cond, stm *thenBranch, stm *elseBranch) {
@@ -94,10 +100,14 @@ stm::~stm() {
   case ASTASSIGN:
     if (this->assign.expr)
       delete this->assign.expr;
+    if (this->assign.id)
+      free(this->assign.id);
     break;
   case ASTFUNCTION:
     if (this->function.arg)
       delete this->function.arg;
+    if (this->function.id)
+      free(this->function.id);
     break;
   case ASTIF:
     if (this->ifStmt.cond)
@@ -124,7 +134,7 @@ void args::appendArg(args *newArg) {
   head->next = std::move(newArg);
 }
 
-func::func(const std::string_view id, const tokenId returnValue, stm *args)
+func::func(const std::string &id, const tokenId returnValue, stm *args)
     : id(id), returnValueTag(convertToken(returnValue).exp), args(args) {}
 
 func::~func() {
@@ -183,7 +193,7 @@ void stm::printStm() {
   switch (this->tag) {
   case ASTASSIGN:
     printf("(");
-    printf("%s", this->assign.id.c_str());
+    printf("%s", this->assign.id);
     switch (this->assign.type) {
     case ASTFLOAT:
       printf(" ASTFLOAT");
@@ -217,7 +227,7 @@ void stm::printStm() {
     this->compound.snd->printStm();
     break;
   case ASTFUNCTION: {
-    printf("%s", this->function.id.c_str());
+    printf("%s", this->function.id);
     printf("(");
     this->function.arg->printArgs();
     printf(")");
@@ -272,7 +282,7 @@ void exp::printExp() {
     printf("%f", this->val);
     break;
   case ASTID:
-    printf("%s", this->id.c_str());
+    printf("%s", this->id);
     break;
   case ASTBINOP:
     printf("(");
@@ -289,7 +299,7 @@ void exp::printExp() {
     printf(")");
     break;
   case ASTSTRLITERAL:
-    printf("%s", this->str.c_str());
+    printf("%s", this->str);
     break;
   case ASTNUM:
     printf("%d", this->num);

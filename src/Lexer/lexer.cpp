@@ -60,7 +60,7 @@ bool lexer::parseFile(std::string_view str) {
 #endif
 #ifdef DEBUG
   // for (const auto &tk : tokens)
-  //   std::cout << tk << '\n';
+  // std::cout << tk << '\n';
 #endif // DEBUG
   closeFile();
   return !errorFound;
@@ -207,19 +207,6 @@ bool lexer::getCharacter() {
   }
 }
 
-bool lexer::getIdentifier() {
-  currentLiteral.clear();
-  char c;
-  while (true) {
-    c = consume();
-    if (c == ' ' || c == ';')
-      return true;
-    else if (c == '\n' || c == EOF || c == '"' || c == '\\')
-      return false;
-    else
-      currentLiteral += c;
-  }
-}
 bool lexer::getStringLiteral() {
   currentLiteral.clear();
   char c;
@@ -430,9 +417,6 @@ tokenId lexer::getNextToken() {
 
     if (auto keyword = keywords.find(currentLiteral); keyword != keywords.end())
       return keyword->second;
-    if (!getIdentifier())
-      errorHandler::getInstance().reportError(file, line, column, filePos,
-                                              ERRORToken);
 
     return IDENTIFIERToken;
   };

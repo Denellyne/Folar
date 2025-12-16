@@ -48,7 +48,7 @@ astToken convertToken(tokenId tag);
 class exp {
 public:
   // New Id or new String Literal
-  exp(const std::string_view str, const tokenId tag);
+  exp(const std::string &str, const tokenId tag);
   // New Float
   exp(const double v);
   // New Int or Bool
@@ -62,16 +62,16 @@ public:
   expType tag;
   union {
     double val;
-    std::string id;
-    std::string str;
+    char *id = nullptr;
+    char *str;
     int num;
     struct { // for OP
       astOp op;
-      exp *left, *right;
+      exp *left = nullptr, *right = nullptr;
     } binop;
     struct {
       astOp op;
-      exp *expr;
+      exp *expr = nullptr;
     } unaryop;
   };
 };
@@ -82,8 +82,8 @@ public:
   args(exp *exp);
   void printArgs();
   void appendArg(args *newArg);
-  exp *arg;
-  args *next;
+  exp *arg = nullptr;
+  args *next = nullptr;
 };
 
 class stm {
@@ -92,9 +92,9 @@ public:
   // New compound statement
   stm(stm *lStm, stm *rStm);
   // New assign statement
-  stm(const std::string_view id, const tokenId type, exp *exp);
+  stm(const std::string &id, const tokenId type, exp *exp);
   // New function statement
-  stm(const std::string_view id, args *args);
+  stm(const std::string &id, args *args);
   // New if statement
   stm(exp *cond, stm *thenBranch, stm *elseBranch);
   // New while statement
@@ -103,40 +103,40 @@ public:
   ~stm();
   union {
     struct { // for COMPOUND
-      stm *fst, *snd;
+      stm *fst = nullptr, *snd = nullptr;
     } compound;
     struct { // for ASSIGN
-      std::string id;
+      char *id = nullptr;
       expType type;
-      exp *expr;
+      exp *expr = nullptr;
     } assign;
     struct {
-      args *arg;
-      std::string id;
+      args *arg = nullptr;
+      char *id = nullptr;
     } function;
     struct { // for IF
-      exp *cond;
-      stm *thenBranch;
+      exp *cond = nullptr;
+      stm *thenBranch = nullptr;
       stm *elseBranch;
     } ifStmt;
     struct { // for WHILE
-      exp *cond;
-      stm *body;
+      exp *cond = nullptr;
+      stm *body = nullptr;
     } whileStmt;
   };
 };
 
 class func {
 public:
-  func(const std::string_view id, const tokenId returnValue, stm *args);
+  func(const std::string &id, const tokenId returnValue, stm *args);
   ~func();
   void printFunc();
 
   std::string id;
   expType returnValueTag;
   int numArgs;
-  stm *args;
-  stm *stmt;
+  stm *args = nullptr;
+  stm *stmt = nullptr;
 };
 class decl {
 public:
@@ -146,10 +146,10 @@ public:
   void printDecl();
   enum { DECLFUNCTION, DECLSTRUCT } tag;
   union {
-    func *fn;
+    func *fn = nullptr;
     // structDecl* strt;
   } declaration;
-  decl *next;
+  decl *next = nullptr;
 };
 
 void printOp(astOp op);

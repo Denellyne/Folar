@@ -24,7 +24,6 @@ private:
   [[nodiscard]] char consume();
   bool getStringLiteral();
   bool getCharacter();
-  bool getIdentifier();
   bool handleEscaping();
   int getNumberLiteral(char ch);
   bool getSpecialTokens(char ch);

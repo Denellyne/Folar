@@ -167,7 +167,6 @@ stm *parser::statements() {
 
 stm *parser::assignStatement() {
   token id = previous();
-  printf("%s\n", id.literal.c_str());
   if (id.id != IDENTIFIERToken) {
     reportError("No name for variable given");
     return nullptr;
@@ -185,8 +184,10 @@ stm *parser::assignStatement() {
   if (match(ASSIGNToken)) {
     // exp *value = expr();
     exp *value = nullptr;
+    printf("%s %s\n", id.literal.c_str(), type.literal.c_str());
     stm *stmt = new stm(id.literal, type.id, value);
 
+    printf("%s %s\n", id.literal.c_str(), type.literal.c_str());
     if (!stmt) {
       reportError("Unable to assign to expression");
       return nullptr;
