@@ -1,13 +1,15 @@
 #pragma once
 #include "../Tokens/tokens.h"
 #include <string>
-#include <string_view>
 enum astOp {
+  ASTERROR,
   ASTPOW,
   ASTPLUS,
   ASTMINUS,
   ASTTIMES,
   ASTDIV,
+  ASTBAND,
+  ASTBOR,
   ASTAND,
   ASTOR,
   ASTNOT,

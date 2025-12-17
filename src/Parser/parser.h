@@ -32,7 +32,7 @@ private:
   exp *bitwise();
   exp *orExp();
   exp *andExp();
-  exp *relExp();
+  exp *compExp();
   exp *addExp();
   exp *mulExp();
   exp *powExp();

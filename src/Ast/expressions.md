@@ -13,8 +13,8 @@ whileStm -> while expression {statements}
 expression -> BitwiseExp
 BitwiseExp -> BitwiseExp & OrExp | BitwiseExp ^ OrExp | BitwiseExp | OrExp 
 OrExp -> AndExp | OrExp || AndExp 
-AndExp -> RelExp | AndExp && RelExp 
-RelExp -> AddExp | AddExp == AddExp | AddExp != AddExp | AddExp >= AddExp |AddExp <= AddExp |AddExp > AddExp |AddExp < AddExp 
+AndExp -> CompExp | AndExp && CompExp 
+CompExp -> AddExp | AddExp == AddExp | AddExp != AddExp | AddExp >= AddExp |AddExp <= AddExp |AddExp > AddExp |AddExp < AddExp 
 AddExp -> MultExp | AddExp + MultExp | AddExp - MultExp
 MultExp -> PowExp | MultExp * PowExp | MultExp / PowExp | MultExp % PowExp
 PowExp -> UnaryExp | UnaryExp ** PowExp

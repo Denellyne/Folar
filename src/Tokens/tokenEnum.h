@@ -9,6 +9,7 @@ enum tokens {
   NEWLineToken,
   EOFToken,
   // operators
+  BITWISEXORToken,
   BITWISENOTToken,
   BITWISEANDToken,
   BITWISEORToken,
@@ -99,6 +100,7 @@ inline const std::array<const std::string, 67> tokenNames = {
     "ERRORToken",
     "NEWLineToken",
     "EOFToken",
+    "BITWISEXORToken",
     "BITWISENOTToken",
     "BITWISEANDToken",
     "BITWISEORToken",

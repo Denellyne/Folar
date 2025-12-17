@@ -315,6 +315,9 @@ tokenId lexer::getNextToken() {
     return EOFToken;
   case '~':
     return BITWISENOTToken;
+  case '^': {
+    return BITWISEXORToken;
+  }
   case '&': {
     if (match('&'))
       return ANDToken;
@@ -346,10 +349,8 @@ tokenId lexer::getNextToken() {
       return EQUALToken;
     return ASSIGNToken;
   }
-
   case '*':
     return MULTIPLYToken;
-
   case '+':
     return ADDToken;
   case '-':

@@ -147,6 +147,11 @@ stm *parser::statements() {
       reportError("Unable to generate assign statement");
       return nullptr;
     }
+    if (consume(ENDStatementToken).id == NOToken) {
+      delete stmt;
+      reportError("End of statement not found");
+      return nullptr;
+    }
     // } else if (match(IFToken)) {
     //   stmt = new stm(ifStatement(), statements());
     //   if (!stmt) {
@@ -182,8 +187,7 @@ stm *parser::assignStatement() {
   token type = previous();
 
   if (match(ASSIGNToken)) {
-    // exp *value = expr();
-    exp *value = nullptr;
+    exp *value = expr();
     printf("%s %s\n", id.literal.c_str(), type.literal.c_str());
     stm *stmt = new stm(id.literal, type.id, value);
 
@@ -198,13 +202,6 @@ stm *parser::assignStatement() {
       value = nullptr;
     }
 
-    if (consume(ENDStatementToken).id == NOToken) {
-      if (stmt)
-        delete stmt;
-      reportError("End of statement not found");
-      return nullptr;
-    }
-
     return stmt;
   }
   if (consume(ENDStatementToken).id == NOToken) {
@@ -214,8 +211,125 @@ stm *parser::assignStatement() {
 
   return new stm(id.literal, type.id, nullptr);
 }
-// exp *parser::expr() { return bitwise(); }
+exp *parser::expr() { return bitwise(); }
 
+exp *parser::bitwise() {
+  exp *expr = orExp();
+  if (!expr) {
+    reportError("Or expression returned null");
+    return nullptr;
+  }
+  while (match(BITWISEANDToken, BITWISEORToken, BITWISEXORToken)) {
+    token operatr = previous();
+    exp *right = orExp();
+    astOp op;
+    switch (operatr.id) {
+    case BITWISEANDToken:
+      op = ASTBAND;
+      break;
+    case BITWISEORToken:
+      op = ASTBOR;
+      break;
+    case BITWISEXORToken:
+      op = ASTXOR;
+      break;
+    default:
+      op = ASTERROR;
+      break;
+    }
+    if (op == ASTERROR || !right) {
+      reportError("No matching operator in bitwise expression");
+      delete expr;
+      if (right)
+        delete right;
+      return nullptr;
+    }
+    expr = new exp(expr, op, right);
+  }
+  if (!expr) {
+    reportError("Final bitwise expression is null");
+    return nullptr;
+  }
+  return expr;
+}
+
+exp *parser::orExp() {
+  exp *expr = andExp();
+  if (!expr) {
+    reportError("And expression returned null");
+    return nullptr;
+  }
+  while (match(ORToken)) {
+    token operatr = previous();
+    exp *right = andExp();
+    astOp op = ASTOR;
+    if (!right) {
+      reportError("No matching operator in and expression");
+      delete expr;
+      if (right)
+        delete right;
+      return nullptr;
+    }
+    expr = new exp(expr, op, right);
+  }
+  if (!expr) {
+    reportError("Final or expression is null");
+    return nullptr;
+  }
+  return expr;
+}
+exp *parser::andExp() {
+  exp *expr = compExp();
+  if (!expr) {
+    reportError("comparison expression returned null");
+    return nullptr;
+  }
+  while (match(ANDToken)) {
+    token operatr = previous();
+    exp *right = compExp();
+    astOp op = ASTAND;
+    if (!right) {
+      reportError("No matching operator in comparison expression");
+      delete expr;
+      if (right)
+        delete right;
+      return nullptr;
+    }
+    expr = new exp(expr, op, right);
+  }
+  if (!expr) {
+    reportError("Final and expression is null");
+    return nullptr;
+  }
+  return expr;
+}
+
+exp *parser::compExp() {
+  exp *expr = addExp();
+  if (!expr) {
+    reportError("comparison expression returned null");
+    return nullptr;
+  }
+  if (match(EQUALToken, NOTEQUALToken, GREATEQUALToken, GREATToken, LESSToken,
+            LESSEQUALToken)) {
+    token operatr = previous();
+    exp *right = addExp();
+    astOp op = ASTAND;
+    if (!right) {
+      reportError("No matching operator in add expression");
+      delete expr;
+      if (right)
+        delete right;
+      return nullptr;
+    }
+    expr = new exp(expr, op, right);
+  }
+  if (!expr) {
+    reportError("Final comparison expression is null");
+    return nullptr;
+  }
+  return expr;
+}
 // exp *parser::equality() {
 //   exp *expr = comparison();
 //
