@@ -266,8 +266,6 @@ exp *parser::orExp() {
     if (!right) {
       reportError("No matching operator in and expression");
       delete expr;
-      if (right)
-        delete right;
       return nullptr;
     }
     expr = new exp(expr, op, right);
@@ -281,7 +279,7 @@ exp *parser::orExp() {
 exp *parser::andExp() {
   exp *expr = compExp();
   if (!expr) {
-    reportError("comparison expression returned null");
+    reportError("Comparison expression returned null");
     return nullptr;
   }
   while (match(ANDToken)) {
@@ -307,7 +305,7 @@ exp *parser::andExp() {
 exp *parser::compExp() {
   exp *expr = addExp();
   if (!expr) {
-    reportError("comparison expression returned null");
+    reportError("Add expression returned null");
     return nullptr;
   }
   if (match(EQUALToken, NOTEQUALToken, GREATEQUALToken, GREATToken, LESSToken,
