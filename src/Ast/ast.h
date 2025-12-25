@@ -1,6 +1,7 @@
 #pragma once
 #include "../Tokens/tokens.h"
 #include <string>
+#include <variant>
 enum astOp {
   ASTERROR,
   ASTPOW,
@@ -48,6 +49,24 @@ union astToken {
 astToken convertToken(tokenId tag);
 
 class exp {
+private:
+  struct binOp { // for OP
+    binOp(exp *lExp, exp *rExp, astOp op) : left(lExp), right(rExp), op(op) {}
+    ~binOp() {
+      delete this->left;
+      delete this->right;
+    }
+    astOp op = ASTERROR;
+    exp *left = nullptr, *right = nullptr;
+  };
+  struct unaryOp {
+
+    unaryOp(exp *expr, astOp op) : expr(expr), op(op) {}
+    ~unaryOp() { delete this->expr; }
+    astOp op = ASTERROR;
+    exp *expr = nullptr;
+  };
+
 public:
   // New Id or new String Literal
   exp(const std::string &str, const tokenId tag);
@@ -62,20 +81,7 @@ public:
   void printExp();
   ~exp();
   expType tag;
-  union {
-    double val;
-    char *id = nullptr;
-    char *str;
-    int num;
-    struct { // for OP
-      astOp op;
-      exp *left = nullptr, *right = nullptr;
-    } binop;
-    struct {
-      astOp op;
-      exp *expr = nullptr;
-    } unaryop;
-  };
+  std::variant<binOp, unaryOp, double, int, std::string> variant = 0;
 };
 
 class args {
@@ -89,6 +95,64 @@ public:
 };
 
 class stm {
+private:
+  struct compound { // for COMPOUND
+    compound(stm *fst, stm *snd) : fst(fst), snd(snd) {}
+    ~compound() {
+      if (this->fst)
+        delete this->fst;
+      if (this->snd)
+        delete this->snd;
+    }
+    stm *fst = nullptr, *snd = nullptr;
+  };
+  struct assign { // for ASSIGN
+
+    assign(const std::string &id, exp *expr, expType type)
+        : id(id), expr(expr), type(type) {}
+
+    ~assign() {
+      if (this->expr)
+        delete this->expr;
+    }
+    std::string id;
+    expType type;
+    exp *expr = nullptr;
+  };
+  struct function {
+    function(const std::string &id, args *arg) : id(id), arg(arg) {}
+    ~function() {
+      if (this->arg)
+        delete this->arg;
+    }
+    args *arg = nullptr;
+    std::string id;
+  };
+  struct ifStmt { // for IF
+    ifStmt(exp *cond, stm *thenBranch, stm *elseBranch)
+        : cond(cond), thenBranch(thenBranch), elseBranch(elseBranch) {}
+    ~ifStmt() {
+      delete this->cond;
+      if (this->thenBranch)
+        delete this->thenBranch;
+      if (this->elseBranch)
+        delete this->elseBranch;
+    }
+    exp *cond = nullptr;
+    stm *thenBranch = nullptr;
+    stm *elseBranch = nullptr;
+  };
+  struct whileStmt { // for WHILE
+    whileStmt(exp *cond, stm *body) : cond(cond), body(body) {}
+    ~whileStmt() {
+      delete this->cond;
+      if (this->body)
+        delete this->body;
+    }
+    exp *cond = nullptr;
+    stm *body = nullptr;
+  };
+
 public:
   stmType tag;
   // New compound statement
@@ -103,29 +167,8 @@ public:
   stm(exp *cond, stm *body);
   void printStm();
   ~stm();
-  union {
-    struct { // for COMPOUND
-      stm *fst = nullptr, *snd = nullptr;
-    } compound;
-    struct { // for ASSIGN
-      char *id = nullptr;
-      expType type;
-      exp *expr = nullptr;
-    } assign;
-    struct {
-      args *arg = nullptr;
-      char *id = nullptr;
-    } function;
-    struct { // for IF
-      exp *cond = nullptr;
-      stm *thenBranch = nullptr;
-      stm *elseBranch;
-    } ifStmt;
-    struct { // for WHILE
-      exp *cond = nullptr;
-      stm *body = nullptr;
-    } whileStmt;
-  };
+  std::variant<compound, assign, function, ifStmt, whileStmt> variant =
+      compound(nullptr, nullptr);
 };
 
 class func {
@@ -147,10 +190,7 @@ public:
   ~decl();
   void printDecl();
   enum { DECLFUNCTION, DECLSTRUCT } tag;
-  union {
-    func *fn = nullptr;
-    // structDecl* strt;
-  } declaration;
+  std::variant<func *> variant;
   decl *next = nullptr;
 };
 

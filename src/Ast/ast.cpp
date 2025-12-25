@@ -1,7 +1,5 @@
 #include "ast.h"
 #include "../ErrorHandler/errorHandler.h"
-#include <cstring>
-#include <iostream>
 #include <string>
 astToken convertToken(tokenId tag) {
   astToken a;
@@ -16,115 +14,64 @@ astToken convertToken(tokenId tag) {
 
 exp::exp(const std::string &str, const tokenId tag)
     : tag(convertToken(tag).exp) {
-  if (this->tag == ASTSTRLITERAL)
-    this->str = strdup(str.c_str());
-  else if (this->tag == ASTID)
-    this->id = strdup(str.c_str());
+  if (this->tag == ASTSTRLITERAL || this->tag == ASTID)
+    this->variant = str;
   else
     errorHandler::getInstance().reportError(INVALIDAST, str);
 }
 
-exp::exp(const double v) : val(v) { this->tag = ASTFLOAT; }
-exp::exp(const int v, const tokenId tag) : num(v), tag(convertToken(tag).exp) {}
+exp::exp(const double v) {
+  this->variant = v;
+  this->tag = ASTFLOAT;
+}
+exp::exp(const int v, const tokenId tag) : tag(convertToken(tag).exp) {
+  this->variant = v;
+}
 exp::exp(exp *lExp, const astOp op, exp *rExp) {
   this->tag = ASTBINOP;
-  this->binop.left = std::move(lExp);
-  this->binop.right = std::move(rExp);
-  this->binop.op = op;
+  this->variant = binOp(std::move(lExp), std::move(rExp), op);
 }
 
 exp::exp(exp *expr, const astOp op) {
   this->tag = ASTUNARYOP;
-  this->unaryop.op = op;
-  this->unaryop.expr = std::move(expr);
+  this->variant = unaryOp(std::move(expr), op);
 }
-exp::~exp() {
-  if (this->tag == ASTBINOP) {
-    delete this->binop.left;
-    delete this->binop.right;
-  } else if (this->tag == ASTUNARYOP)
-    delete this->unaryop.expr;
-  else if (this->tag == ASTSTRLITERAL)
-    free(this->str);
-  else if (this->tag == ASTID)
-    free(this->id);
-}
+exp::~exp() {}
 
 stm::stm(stm *lStm, stm *rStm) {
 
   this->tag = ASTCOMPOUND;
-  this->compound.fst = std::move(lStm);
-  this->compound.snd = std::move(rStm);
+  this->variant = compound(std::move(lStm), std::move(rStm));
 }
 
 stm::stm(const std::string &id, const tokenId type, exp *exp) {
 
   this->tag = ASTASSIGN;
-  this->assign.id = strdup(id.c_str());
-  this->assign.expr = std::move(exp);
   expType convertedType = convertToken(type).exp;
 
   if (convertedType == ASTNOTYPE && exp)
-    this->assign.type = exp->tag;
-  else
-    this->assign.type = convertedType;
+    convertedType = exp->tag;
+
+  this->variant = assign(id, std::move(exp), convertedType);
 }
 
 stm::stm(const std::string &id, args *args) {
 
   this->tag = ASTFUNCTION;
-  this->function.arg = std::move(args);
-  this->function.id = strdup(id.c_str());
+  this->variant = function(id, std::move(args));
 }
 
 stm::stm(exp *cond, stm *thenBranch, stm *elseBranch) {
   this->tag = ASTIF;
-  this->ifStmt.cond = cond;
-  this->ifStmt.thenBranch = std::move(thenBranch);
-  this->ifStmt.elseBranch = std::move(elseBranch);
+  this->variant =
+      ifStmt(std::move(cond), std::move(thenBranch), std::move(elseBranch));
 }
 stm::stm(exp *cond, stm *body) {
   this->tag = ASTWHILE;
-  this->whileStmt.cond = std::move(cond);
-  this->whileStmt.body = std::move(body);
+  this->variant = whileStmt(std::move(cond), std::move(body));
 }
 
-stm::~stm() {
-  switch (this->tag) {
-  case ASTCOMPOUND:
-    if (this->compound.fst)
-      delete this->compound.fst;
-    if (this->compound.snd)
-      delete this->compound.snd;
-    break;
-  case ASTASSIGN:
-    if (this->assign.expr)
-      delete this->assign.expr;
-    if (this->assign.id)
-      free(this->assign.id);
-    break;
-  case ASTFUNCTION:
-    if (this->function.arg)
-      delete this->function.arg;
-    if (this->function.id)
-      free(this->function.id);
-    break;
-  case ASTIF:
-    if (this->ifStmt.cond)
-      delete this->ifStmt.cond;
-    if (this->ifStmt.thenBranch)
-      delete this->ifStmt.thenBranch;
-    if (this->ifStmt.elseBranch)
-      delete this->ifStmt.elseBranch;
-    break;
-  case ASTWHILE:
-    if (this->whileStmt.cond)
-      delete this->whileStmt.cond;
-    if (this->whileStmt.body)
-      delete this->whileStmt.body;
-    break;
-  }
-}
+stm::~stm() {}
 args::args(exp *expr) : arg(expr) { this->next = nullptr; }
 void args::appendArg(args *newArg) {
   args *head = this;
@@ -145,8 +92,9 @@ func::~func() {
 }
 
 void func::printFunc() {
-  if (!this)
-    return;
+  // if (!this)
+  //   return;
+
   printf("%s %u ", this->id.c_str(), this->returnValueTag);
   printf("( ");
   this->args->printStm();
@@ -158,26 +106,28 @@ void func::printFunc() {
 
 decl::decl(func *fn, decl *ptr) : next(std::move(ptr)) {
   this->tag = DECLFUNCTION;
-  this->declaration.fn = std::move(fn);
+  this->variant = std::move(fn);
 }
 decl::~decl() {
   switch (this->tag) {
 
-  case DECLFUNCTION:
-    if (this->declaration.fn)
-      delete this->declaration.fn;
-    break;
+  case DECLFUNCTION: {
+    if (func *fn = std::get<func *>(this->variant); fn)
+      delete fn;
+  } break;
   case DECLSTRUCT:
     // delete this->declaration.strt;
     break;
   }
 }
 void decl::printDecl() {
-  if (!this)
-    return;
+  // if (!this)
+  //   return;
+
   switch (this->tag) {
   case DECLFUNCTION:
-    this->declaration.fn->printFunc();
+    if (func *fn = std::get<func *>(this->variant); fn)
+      fn->printFunc();
     break;
   case DECLSTRUCT:
     //  this->declaration.strt->printStruct();
@@ -187,14 +137,15 @@ void decl::printDecl() {
 }
 
 void stm::printStm() {
-  if (!this)
-    return;
+  // if (!this)
+  //   return;
 
   switch (this->tag) {
-  case ASTASSIGN:
+  case ASTASSIGN: {
+    assign &ref = std::get<assign>(this->variant);
     printf("(");
-    printf("%s", this->assign.id);
-    switch (this->assign.type) {
+    printf("%s", ref.id.c_str());
+    switch (ref.type) {
     case ASTFLOAT:
       printf(" ASTFLOAT");
       break;
@@ -213,102 +164,121 @@ void stm::printStm() {
     default:
       break;
     }
-    if (this->assign.expr) {
+    if (ref.expr) {
       printf(" (");
-      this->assign.expr->printExp();
+      ref.expr->printExp();
       printf(")");
     }
     printf(")");
+  }
 
-    break;
-  case ASTCOMPOUND:
-    this->compound.fst->printStm();
-    printf(" ");
-    this->compound.snd->printStm();
-    break;
+  break;
+  case ASTCOMPOUND: {
+
+    compound &ref = std::get<compound>(this->variant);
+    if (ref.fst)
+      ref.fst->printStm();
+    if (ref.snd) {
+      printf(" ");
+      ref.snd->printStm();
+    }
+  } break;
   case ASTFUNCTION: {
-    printf("%s", this->function.id);
+    function &ref = std::get<function>(this->variant);
+    printf("%s", ref.id.c_str());
     printf("(");
-    this->function.arg->printArgs();
+    if (ref.arg)
+      ref.arg->printArgs();
     printf(")");
   } break;
   case ASTIF: {
 
+    ifStmt &ref = std::get<ifStmt>(this->variant);
     int hasElse = 0;
     printf("IF");
     printf(" THEN ");
-
-    if (this->ifStmt.elseBranch) {
+    if (ref.elseBranch) {
       printf(" ELSE ");
       hasElse = 1;
     }
 
-    this->ifStmt.cond->printExp();
+    if (ref.cond)
+      ref.cond->printExp();
+
     printf(" (");
-    this->ifStmt.thenBranch->printStm();
+    if (ref.thenBranch)
+      ref.thenBranch->printStm();
     printf(")");
 
     if (hasElse) {
       printf(" (");
-      this->ifStmt.elseBranch->printStm();
+      ref.elseBranch->printStm();
       printf(")");
     }
   } break;
   case ASTWHILE:
     printf("WHILE");
     printf(" DO ");
-    this->whileStmt.cond->printExp();
-    printf(" ");
-    this->whileStmt.body->printStm();
+
+    whileStmt &ref = std::get<whileStmt>(this->variant);
+    if (ref.cond)
+      ref.cond->printExp();
+    if (ref.body) {
+      printf(" ");
+      ref.body->printStm();
+    }
     break;
   }
 }
 
 void args::printArgs() {
-  if (!this)
-    return;
+  // if (!this)
+  //   return;
+
   this->arg->printExp();
   if (this->next)
     printf(" ");
   return this->next->printArgs();
 }
 void exp::printExp() {
-  if (!this)
-    return;
+  // if (!this)
+  //   return;
 
   switch (this->tag) {
   case ASTDOUBLE:
   case ASTFLOAT:
-    printf("%f", this->val);
+    printf("%f", std::get<double>(this->variant));
     break;
   case ASTID:
-    printf("%s", this->id);
-    break;
-  case ASTBINOP:
-    printf("(");
-    printOp(this->binop.op);
-    this->binop.left->printExp();
-    printf(" ");
-    this->binop.right->printExp();
-    printf(")");
-    break;
-  case ASTUNARYOP:
-    printf("(");
-    printOp(this->unaryop.op);
-    this->unaryop.expr->printExp();
-    printf(")");
-    break;
   case ASTSTRLITERAL:
-    printf("%s", this->str);
+    printf("%s", std::get<std::string>(this->variant).c_str());
     break;
+  case ASTBINOP: {
+    binOp &ref = std::get<binOp>(this->variant);
+    printf("(");
+    printOp(ref.op);
+    ref.left->printExp();
+    printf(" ");
+    ref.right->printExp();
+    printf(")");
+  } break;
+  case ASTUNARYOP: {
+    unaryOp &ref = std::get<unaryOp>(this->variant);
+    printf("(");
+    printOp(ref.op);
+    ref.expr->printExp();
+    printf(")");
+  } break;
   case ASTNUM:
-    printf("%d", this->num);
+    printf("%d", std::get<int>(this->variant));
     break;
   case ASTBOOL:
-    if (this->num)
+    if (std::get<int>(this->variant))
       printf("TRUE");
     else
       printf("FALSE");
+    break;
+  default:
     break;
   }
 }
@@ -330,9 +300,11 @@ void printOp(const astOp op) {
   case ASTDIV:
     printf("DIV ");
     break;
+  case ASTBAND:
   case ASTAND:
     printf("AND ");
     break;
+  case ASTBOR:
   case ASTOR:
     printf("OR ");
     break;
@@ -359,6 +331,8 @@ void printOp(const astOp op) {
     break;
   case ASTXOR:
     printf("XOR ");
+    break;
+  case ASTERROR:
     break;
   }
 }
