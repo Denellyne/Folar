@@ -32,6 +32,7 @@ enum tokens {
   SUBToken,
   DIVIDEToken,
   MODULUSToken,
+  POWToken,
   ASSIGNToken,
   POINTERToken,
   // Misc
@@ -121,6 +122,7 @@ inline const std::array<const std::string, 67> tokenNames = {
     "SUBToken",
     "DIVIDEToken",
     "MODULUSToken",
+    "POWToken",
     "ASSIGNToken",
     "POINTERToken",
     // "MAINToken",

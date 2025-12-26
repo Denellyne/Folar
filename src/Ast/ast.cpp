@@ -1,15 +1,41 @@
 #include "ast.h"
 #include "../ErrorHandler/errorHandler.h"
 #include <string>
-astToken convertToken(tokenId tag) {
-  astToken a;
+astToken convertToken(const tokenId tag) {
+  astToken tk;
   switch (tag) {
   case INT8Token:
-  retuINT8Token:
-    a.exp = ASTNUM;
+    tk.exp = ASTNUM;
     break;
   }
-  return a;
+  return tk;
+}
+astOp convertOp(const token tk) {
+  switch (tk.id) {
+  case EQUALToken:
+    return ASTEQ;
+  case NOTEQUALToken:
+    return ASTNEQ;
+  case GREATEQUALToken:
+    return ASTGE;
+  case GREATToken:
+    return ASTGT;
+  case LESSToken:
+    return ASTLT;
+  case LESSEQUALToken:
+    return ASTLE;
+  case ADDToken:
+    return ASTPLUS;
+  case SUBToken:
+    return ASTMINUS;
+  case MODULUSToken:
+    return ASTMODULUS;
+  case MULTIPLYToken:
+    return ASTTIMES;
+  case DIVIDEToken:
+    return ASTDIV;
+  }
+  return ASTERROR;
 }
 
 exp::exp(const std::string &str, const tokenId tag)
@@ -331,6 +357,9 @@ void printOp(const astOp op) {
     break;
   case ASTXOR:
     printf("XOR ");
+    break;
+  case ASTMODULUS:
+    printf("MODULUS ");
     break;
   case ASTERROR:
     break;

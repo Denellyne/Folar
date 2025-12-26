@@ -7,6 +7,7 @@ enum astOp {
   ASTPOW,
   ASTPLUS,
   ASTMINUS,
+  ASTMODULUS,
   ASTTIMES,
   ASTDIV,
   ASTBAND,
@@ -46,7 +47,8 @@ union astToken {
   stmType stmt;
 };
 
-astToken convertToken(tokenId tag);
+astToken convertToken(const tokenId tag);
+astOp convertOp(const token tk);
 
 class exp {
 private:

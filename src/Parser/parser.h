@@ -2,8 +2,13 @@
 
 #include "../Ast/ast.h"
 #include "../Tokens/tokens.h"
+#include <concepts>
 #include <fstream>
+#include <type_traits>
 #include <vector>
+template <typename T>
+concept tokenIdConcept = (std::same_as<std::common_type_t<T>, tokenId>);
+
 class parser {
 
 public:
@@ -34,7 +39,7 @@ private:
   exp *andExp();
   exp *compExp();
   exp *addExp();
-  exp *mulExp();
+  exp *multExp();
   exp *powExp();
   exp *unaryExp();
   exp *primary();
@@ -48,23 +53,13 @@ private:
   void reportError(unsigned errorType);
   void reportError(std::string_view customError);
 
-  template <typename... tokenId> bool match(tokenId... types) {
-    for (const auto &token : {types...}) {
-      if (check(token)) {
-        advance();
-        return true;
-      }
-    }
-    return false;
-  }
-  bool matchToType() {
-    for (const auto &token : tokenTypes) {
-      if (check(token)) {
-        advance();
-        return true;
-      }
-    }
-    return false;
+  constexpr bool matchToType();
+  constexpr bool match(const tokenId type);
+
+  template <typename... tokenIdConcept>
+    requires(sizeof...(tokenIdConcept) > 1)
+  constexpr bool match(const tokenIdConcept... tokens) {
+    return (((check(tokens)) ? advance(), true : false) || ...);
   }
 
   bool errorFound = false;

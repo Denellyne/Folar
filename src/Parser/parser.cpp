@@ -36,6 +36,24 @@ void parser::receiveTokens(const std::vector<token> &token) {
   pos = 0;
   errorFound = 0;
 }
+
+constexpr bool parser::matchToType() {
+  for (const auto &token : tokenTypes) {
+    if (check(token)) {
+      advance();
+      return true;
+    }
+  }
+  return false;
+}
+
+constexpr bool parser::match(const tokenId type) {
+  if (check(type)) {
+    advance();
+    return true;
+  }
+  return false;
+}
 bool parser::isEOF() { return peek().id == EOFToken; }
 token parser::peek() { return tokens[pos]; }
 token parser::previous() { return tokens[pos - 1]; }
@@ -70,6 +88,8 @@ void parser::synchronize() {
     case ENUMToken:
     case LETToken:
       return;
+    default:
+      break;
     }
     advance();
   }
@@ -312,7 +332,7 @@ exp *parser::compExp() {
             LESSEQUALToken)) {
     token operatr = previous();
     exp *right = addExp();
-    astOp op = ASTAND;
+    astOp op = convertOp(operatr);
     if (!right) {
       reportError("No matching operator in add expression");
       delete expr;
@@ -328,6 +348,84 @@ exp *parser::compExp() {
   }
   return expr;
 }
+exp *parser::addExp() {
+  exp *expr = multExp();
+  if (!expr) {
+    reportError("Mult expression returned null");
+    return nullptr;
+  }
+  if (match(ADDToken, SUBToken)) {
+    token operatr = previous();
+    exp *right = multExp();
+    astOp op = convertOp(operatr);
+    if (!right) {
+      reportError("No matching operator in mult expression");
+      delete expr;
+      if (right)
+        delete right;
+      return nullptr;
+    }
+    expr = new exp(expr, op, right);
+  }
+  if (!expr) {
+    reportError("Final add expression is null");
+    return nullptr;
+  }
+  return expr;
+}
+
+exp *parser::multExp() {
+  exp *expr = powExp();
+  if (!expr) {
+    reportError("Power expression returned null");
+    return nullptr;
+  }
+  if (match(MODULUSToken, MULTIPLYToken, DIVIDEToken)) {
+    token operatr = previous();
+    exp *right = powExp();
+    astOp op = convertOp(operatr);
+    if (!right) {
+      reportError("No matching operator in power expression");
+      delete expr;
+      if (right)
+        delete right;
+      return nullptr;
+    }
+    expr = new exp(expr, op, right);
+  }
+  if (!expr) {
+    reportError("Final mult expression is null");
+    return nullptr;
+  }
+  return expr;
+}
+
+exp *parser::powExp() {
+  exp *expr = unaryExp();
+  if (!expr) {
+    reportError("Unary expression returned null");
+    return nullptr;
+  }
+  if (match(POWToken)) {
+    token operatr = previous();
+    exp *right = unaryExp();
+    astOp op = convertOp(operatr);
+    if (!right) {
+      reportError("No matching operator in unary expression");
+      delete expr;
+      if (right)
+        delete right;
+      return nullptr;
+    }
+    expr = new exp(expr, op, right);
+  }
+  if (!expr) {
+    reportError("Final power expression is null");
+    return nullptr;
+  }
+  return expr;
+}
+
 // exp *parser::equality() {
 //   exp *expr = comparison();
 //

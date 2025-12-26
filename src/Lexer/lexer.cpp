@@ -350,6 +350,8 @@ tokenId lexer::getNextToken() {
     return ASSIGNToken;
   }
   case '*':
+    if (match('*'))
+      return POWToken;
     return MULTIPLYToken;
   case '+':
     return ADDToken;
