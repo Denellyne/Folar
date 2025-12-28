@@ -1,10 +1,42 @@
 
-int8 main() {
+
+fn weird(mut x : int8, y : int8) -> int8 {
+  lambda sum :: int8 -> int8 -> int8 {
+    sum x y => x + y;
+  }
+
+  lambda sumWithX[] :: int8 -> int8 {
+    sumWithX x => lambda[x] :: int8 -> int8 {
+      y => x + y;
+    }
+  }
+
+  lambda sumWith5[] :: lambda ( int8 -> int8 )  {
+    sumWith5 => sumWithX(5);
+  }
+
+  lambda cond[] :: int8 -> int8 -> boolean {
+    cond x y => x < y;
+  }
+
+  lambda sumLoop[] :: mut int8 -> int8 -> lambda(int8 -> int8 -> boolean) -> int8 {
+    sumLoop x y condition => 
+      while(condition(x,y)){
+        x = sumWith5(x);
+      }
+  }
+
+  return sumLoop(1,1000,cond);
+}
+
+
+
+fn main() -> int8 {
   let x : int8 = 3;
   let mut y : int8 = 4;
 
   let z : uint8 = x+y;    
-  y = z +4;
+  y = sum(z,4);
   if( y >=3){
     return 1;
   }
