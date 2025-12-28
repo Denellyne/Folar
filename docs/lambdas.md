@@ -59,7 +59,7 @@ lambda incVec1[] :: &int8[] -> void
 
 ## Lambdas returning lambdas
 
-These lambdas return a new lambda, this is useful if you're using it to bind an argument to previously defined lambda
+These lambdas return a new lambda, this is useful if you're using it to bind an argument to a previously defined lambda
 
 Examples:
 
@@ -86,9 +86,9 @@ $$sumWith5 = \lambda x y . (x + y) [x \to 5] = \lambda y . (5 + y)$$
   
 ## Lambda capture
 
-Lambda captures are special because they allow you to capture outside variables, create a variable only for the scope of that variable, or even take a reference to an outside variable
+Lambda captures are special because they allow you to capture outside variables, create a variable only for the scope of that lambda, or even take a reference to an outside variable
 
-This is possible because a lambda is bound to the scoope of the function that defines it, as such, anything declared before the lambda is able to be captured.
+This is possible because a lambda is bound to the scope of the function that defines it, as such, anything declared before the lambda is able to be captured.
 
 Example:
 
