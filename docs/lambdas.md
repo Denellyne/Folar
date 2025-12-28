@@ -2,7 +2,7 @@
 
 ## Declaration
 
-Lambdas can be declared with or without name, but only if passed as an argument as a unnamed lambda as no way of being called otherwise.
+Lambdas can be declared with or without name, but only if passed as an argument as an unnamed lambda as no way of being called otherwise.
 
 Lambdas that are represented by the return of the expression are able to be declared without the brackets.
 
@@ -75,10 +75,14 @@ lambda sumWithX[] :: int8 -> lambda (int8 -> int8) {
   }
 
 ```
-
->sumWith5 can now be called and the number 5 will substitute the x variable in the lambda sumWithX.
+> [!NOTE]
+> `sumWith5` can now be called, and the number `5` will substitute the `x` variable in the `sumWithX` lambda.
   
->In formal language, sumWithX = \xy.x+y and sumWith5 = \xy.x+y[x->5] = \y.5+y
+**Formal Definition:**
+
+$$sumWithX = \lambda x y . (x + y)$$
+
+$$sumWith5 = \lambda x y . (x + y) [x \to 5] = \lambda y . (5 + y)$$
   
 ## Lambda capture
 
@@ -105,9 +109,15 @@ fn foo(items : int8[]) -> boolean {
 
 ```
 
-> The lambda is55 throws a compile-time error if the variable x isn't initialized before the first call, as with any other use of mutable variables
+> [!IMPORTANT]
+> 
+> **Initialization Safety**
+> 
+> The lambda `is55` will throw a **compile-time error** if the variable `x` is not initialized before the first call. This applies to any use of mutable variables.
 
-> Note that had the lambda captured by value instead of reference that would also throw a compile-time error immediatly given that would be classified as a use of the variable before initialization
+> [!WARNING]
+> 
+> Had the lambda captured by **value** instead of **reference**, it would throw a compile-time error immediately, as this would be classified as using a variable before initialization.
 
 
 
