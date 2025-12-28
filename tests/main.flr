@@ -1,5 +1,20 @@
 
 
+fn filter<T>(items : T[],cond : lambda( T -> boolean) -> T[] {
+  let mut result : T[];
+  for item in items {
+    if(cond(item)){
+      result.push(item);
+    }
+  }
+
+  return result;
+}
+
+fn even(items : int8[]) -> int8[] {
+  return filter(items,lambda[] :: int8 -> boolean{ x => x%2 == 0;});
+}
+
 fn weird(mut x : int8, y : int8) -> int8 {
   lambda sum :: int8 -> int8 -> int8 {
     sum x y => x + y;
