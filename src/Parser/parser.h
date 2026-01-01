@@ -42,7 +42,7 @@ private:
   exp *multExp();
   exp *powExp();
   exp *unaryExp();
-  exp *primary();
+  exp *primaryExp();
   token consume(tokenId tk);
   bool check(tokenId token);
   token peek();

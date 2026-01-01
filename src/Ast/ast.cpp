@@ -1,5 +1,6 @@
 #include "ast.h"
 #include "../ErrorHandler/errorHandler.h"
+#include <print>
 #include <string>
 astToken convertToken(const tokenId tag) {
   astToken tk;
@@ -38,20 +39,79 @@ astOp convertOp(const token tk) {
   return ASTERROR;
 }
 
-exp::exp(const std::string &str, const tokenId tag)
-    : tag(convertToken(tag).exp) {
-  if (this->tag == ASTSTRLITERAL || this->tag == ASTID)
-    this->variant = str;
-  else
-    errorHandler::getInstance().reportError(INVALIDAST, str);
-}
+exp::exp(const token &tk) {
+  constexpr auto toNum = [](const std::string_view str) {
+    long long num = 0;
+    bool negative = str[0] == '-';
+    for (const auto &ch : str) {
+      if (ch == '-')
+        continue;
+      else
+        num = (num * 10) + (ch - '0');
+    }
+    if (negative)
+      num *= -1;
 
-exp::exp(const double v) {
-  this->variant = v;
-  this->tag = ASTFLOAT;
-}
-exp::exp(const int v, const tokenId tag) : tag(convertToken(tag).exp) {
-  this->variant = v;
+    return num;
+  };
+  constexpr auto toFloat = [](const std::string_view str) {
+    long double num = 0;
+    bool negative = str[0] == '-';
+    bool decimal = 0;
+    long long decimalStep = 10;
+    for (const auto &ch : str) {
+      if (ch == '-')
+        continue;
+      else if (ch == '.') {
+        decimal = true;
+        decimalStep = 10;
+      } else if (!decimal)
+        num = (num * 10.0f) + (ch - '0');
+      else {
+        num = num + ((float)(ch - '0') / decimalStep);
+        decimalStep *= 10;
+      }
+    }
+    if (negative)
+      num *= -1.0f;
+
+    return num;
+  };
+  switch (tk.id) {
+
+  // case NULLToken:
+  case TRUEToken:
+    this->tag = ASTBOOL;
+    this->variant = 1;
+    break;
+  case FALSEToken:
+    this->tag = ASTBOOL;
+    this->variant = 0;
+    break;
+  case CHARLiteralToken:
+    this->tag = ASTCHAR;
+    this->variant = tk.literal;
+    break;
+  case STRINGLiteralToken:
+    this->tag = ASTSTRLITERAL;
+    this->variant = tk.literal;
+    break;
+  case NUMBERLiteralToken:
+    this->tag = ASTNUM;
+    this->variant = toNum(tk.literal);
+    break;
+  case FLOATLiteralToken:
+    this->tag = ASTFLOAT;
+    this->variant = toFloat(tk.literal);
+    break;
+  case IDENTIFIERToken:
+    this->tag = ASTID;
+    this->variant = tk.literal;
+    break;
+  default: {
+    this->tag = ASTNOTYPE;
+  } break;
+  }
 }
 exp::exp(exp *lExp, const astOp op, exp *rExp) {
   this->tag = ASTBINOP;
@@ -121,13 +181,13 @@ void func::printFunc() {
   // if (!this)
   //   return;
 
-  printf("%s %u ", this->id.c_str(), this->returnValueTag);
-  printf("( ");
+  std::println("{} {} ", this->id, stringify(this->returnValueTag));
+  std::println("( ");
   this->args->printStm();
-  printf(") ");
-  printf("( ");
+  std::println(") ");
+  std::println("( ");
   this->stmt->printStm();
-  printf(") ");
+  std::println(") ");
 }
 
 decl::decl(func *fn, decl *ptr) : next(std::move(ptr)) {
@@ -169,33 +229,33 @@ void stm::printStm() {
   switch (this->tag) {
   case ASTASSIGN: {
     assign &ref = std::get<assign>(this->variant);
-    printf("(");
-    printf("%s", ref.id.c_str());
+    std::println("(");
+    std::println("{}", ref.id.c_str());
     switch (ref.type) {
     case ASTFLOAT:
-      printf(" ASTFLOAT");
+      std::println(" ASTFLOAT");
       break;
     case ASTID:
-      printf(" ASTID");
+      std::println(" ASTID");
       break;
     case ASTNUM:
-      printf(" INTEGER");
+      std::println(" INTEGER");
       break;
     case ASTSTRLITERAL:
-      printf(" STRING");
+      std::println(" STRING");
       break;
     case ASTBOOL:
-      printf(" ASTBOOL");
+      std::println(" ASTBOOL");
       break;
     default:
       break;
     }
     if (ref.expr) {
-      printf(" (");
+      std::println(" (");
       ref.expr->printExp();
-      printf(")");
+      std::println(")");
     }
-    printf(")");
+    std::println(")");
   }
 
   break;
@@ -205,52 +265,52 @@ void stm::printStm() {
     if (ref.fst)
       ref.fst->printStm();
     if (ref.snd) {
-      printf(" ");
+      std::println(" ");
       ref.snd->printStm();
     }
   } break;
   case ASTFUNCTION: {
     function &ref = std::get<function>(this->variant);
-    printf("%s", ref.id.c_str());
-    printf("(");
+    std::println("{}", ref.id.c_str());
+    std::println("(");
     if (ref.arg)
       ref.arg->printArgs();
-    printf(")");
+    std::println(")");
   } break;
   case ASTIF: {
 
     ifStmt &ref = std::get<ifStmt>(this->variant);
     int hasElse = 0;
-    printf("IF");
-    printf(" THEN ");
+    std::println("IF");
+    std::println(" THEN ");
     if (ref.elseBranch) {
-      printf(" ELSE ");
+      std::println(" ELSE ");
       hasElse = 1;
     }
 
     if (ref.cond)
       ref.cond->printExp();
 
-    printf(" (");
+    std::println(" (");
     if (ref.thenBranch)
       ref.thenBranch->printStm();
-    printf(")");
+    std::println(")");
 
     if (hasElse) {
-      printf(" (");
+      std::println(" (");
       ref.elseBranch->printStm();
-      printf(")");
+      std::println(")");
     }
   } break;
   case ASTWHILE:
-    printf("WHILE");
-    printf(" DO ");
+    std::println("WHILE");
+    std::println(" DO ");
 
     whileStmt &ref = std::get<whileStmt>(this->variant);
     if (ref.cond)
       ref.cond->printExp();
     if (ref.body) {
-      printf(" ");
+      std::println(" ");
       ref.body->printStm();
     }
     break;
@@ -263,7 +323,7 @@ void args::printArgs() {
 
   this->arg->printExp();
   if (this->next)
-    printf(" ");
+    std::println(" ");
   return this->next->printArgs();
 }
 void exp::printExp() {
@@ -273,36 +333,36 @@ void exp::printExp() {
   switch (this->tag) {
   case ASTDOUBLE:
   case ASTFLOAT:
-    printf("%f", std::get<double>(this->variant));
+    std::println("{}", std::get<long double>(this->variant));
     break;
   case ASTID:
   case ASTSTRLITERAL:
-    printf("%s", std::get<std::string>(this->variant).c_str());
+    std::println("{}", std::get<std::string>(this->variant).c_str());
     break;
   case ASTBINOP: {
     binOp &ref = std::get<binOp>(this->variant);
-    printf("(");
+    std::println("(");
     printOp(ref.op);
     ref.left->printExp();
-    printf(" ");
+    std::println(" ");
     ref.right->printExp();
-    printf(")");
+    std::println(")");
   } break;
   case ASTUNARYOP: {
     unaryOp &ref = std::get<unaryOp>(this->variant);
-    printf("(");
+    std::println("(");
     printOp(ref.op);
     ref.expr->printExp();
-    printf(")");
+    std::println(")");
   } break;
   case ASTNUM:
-    printf("%d", std::get<int>(this->variant));
+    std::println("{}", std::get<long long>(this->variant));
     break;
   case ASTBOOL:
-    if (std::get<int>(this->variant))
-      printf("TRUE");
+    if ((bool)std::get<long long>(this->variant))
+      std::println("TRUE");
     else
-      printf("FALSE");
+      std::println("FALSE");
     break;
   default:
     break;
@@ -312,54 +372,54 @@ void exp::printExp() {
 void printOp(const astOp op) {
   switch (op) {
   case ASTPOW:
-    printf("POW ");
+    std::println("POW ");
     break;
   case ASTPLUS:
-    printf("PLUS ");
+    std::println("PLUS ");
     break;
   case ASTMINUS:
-    printf("MINUS ");
+    std::println("MINUS ");
     break;
   case ASTTIMES:
-    printf("MULT ");
+    std::println("MULT ");
     break;
   case ASTDIV:
-    printf("DIV ");
+    std::println("DIV ");
     break;
   case ASTBAND:
   case ASTAND:
-    printf("AND ");
+    std::println("AND ");
     break;
   case ASTBOR:
   case ASTOR:
-    printf("OR ");
+    std::println("OR ");
     break;
   case ASTNOT:
-    printf("NOT ");
+    std::println("NOT ");
     break;
   case ASTEQ:
-    printf("EQUAL ");
+    std::println("EQUAL ");
     break;
   case ASTNEQ:
-    printf("NOT EQUAL ");
+    std::println("NOT EQUAL ");
     break;
   case ASTLT:
-    printf("LESSER ");
+    std::println("LESSER ");
     break;
   case ASTGT:
-    printf("GREATER ");
+    std::println("GREATER ");
     break;
   case ASTLE:
-    printf("LESS EQUAL ");
+    std::println("LESS EQUAL ");
     break;
   case ASTGE:
-    printf("GREAT EQUAL ");
+    std::println("GREAT EQUAL ");
     break;
   case ASTXOR:
-    printf("XOR ");
+    std::println("XOR ");
     break;
   case ASTMODULUS:
-    printf("MODULUS ");
+    std::println("MODULUS ");
     break;
   case ASTERROR:
     break;

@@ -116,8 +116,8 @@ const char lexer::peekNextChar() {
   return c;
 }
 bool lexer::handleEscaping() {
-  auto isOctal = [](const char c) { return (c >= '0' && c <= '7'); };
-  auto isHex = [](const char c) {
+  constexpr auto isOctal = [](const char c) { return (c >= '0' && c <= '7'); };
+  constexpr auto isHex = [](const char c) {
     return ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
   };
   auto handleSpecial = [&](auto condition, int length) {
@@ -226,7 +226,7 @@ bool lexer::getStringLiteral() {
 }
 
 int lexer::getNumberLiteral(char ch) {
-  auto isValid = [](char c) {
+  constexpr auto isValid = [](char c) {
     return (c == ';' || c == ')' || c == ']' || c == '*' || c == '-' ||
             c == '+' || c == '/' || c == '%');
   };
@@ -274,7 +274,7 @@ int lexer::isSpecialCharacter(char c) {
 };
 
 bool lexer::getSpecialTokens(char ch) {
-  auto isAlphaNumeric = [](char c) -> bool {
+  constexpr auto isAlphaNumeric = [](char c) -> bool {
     if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') ||
         (c >= 'A' && c <= 'Z'))
       return true;

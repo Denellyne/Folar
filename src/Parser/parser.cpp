@@ -25,7 +25,6 @@ void parser::reportError(unsigned errorType) {
                                           peek().filePos, errorType);
 }
 void parser::reportError(std::string_view customError) {
-
   errorFound = true;
   errorHandler::getInstance().reportError(file, peek().line, peek().column,
                                           peek().filePos, CUSTOMERROR,
@@ -423,6 +422,71 @@ exp *parser::powExp() {
     reportError("Final power expression is null");
     return nullptr;
   }
+  return expr;
+}
+
+exp *parser::unaryExp() {
+  if (match(ADDToken, SUBToken, NOTToken)) {
+    exp *expr = primaryExp();
+    if (!expr) {
+      reportError("Primary expression returned null");
+      return nullptr;
+    }
+    token operatr = previous();
+    astOp op = convertOp(operatr);
+    if (!expr) {
+      reportError("No matching operator in unary expression");
+      delete expr;
+      if (expr)
+        delete expr;
+      return nullptr;
+    }
+    expr = new exp(expr, op);
+    if (!expr) {
+      reportError("Final unary expression is null");
+      return nullptr;
+    }
+    return expr;
+  }
+  exp *expr = primaryExp();
+  if (!expr) {
+    reportError("Final unary expression is null");
+    return nullptr;
+  }
+
+  return expr;
+}
+
+exp *parser::primaryExp() {
+  token operatr = advance();
+  exp *expression = nullptr;
+
+  switch (operatr.id) {
+  case LCurlyBracketToken: {
+
+    expression = expr();
+
+    if (!match(RCurlyBracketToken)) {
+      reportError("Malformed grouping");
+      return nullptr;
+    }
+  } break;
+  case NULLToken:
+  case TRUEToken:
+  case FALSEToken:
+  case STRINGLiteralToken:
+  case CHARLiteralToken:
+  case NUMBERLiteralToken:
+  case FLOATLiteralToken: {
+    expression = new exp(operatr);
+  } break;
+  }
+  exp *expr = primaryExp();
+  if (!expr || expr->tag == ASTNOTYPE) {
+    reportError("Final unary expression is null");
+    return nullptr;
+  }
+
   return expr;
 }
 

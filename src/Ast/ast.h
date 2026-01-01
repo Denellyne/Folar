@@ -28,6 +28,7 @@ enum expType {
   ASTID,
   ASTNUM,
   ASTBOOL,
+  ASTCHAR,
   ASTSTRLITERAL,
   ASTFLOAT,
   ASTDOUBLE,
@@ -71,11 +72,9 @@ private:
 
 public:
   // New Id or new String Literal
-  exp(const std::string &str, const tokenId tag);
   // New Float
-  exp(const double v);
   // New Int or Bool
-  exp(const int v, const tokenId tag);
+  exp(const token &tk);
   // New BINOP
   exp(exp *lExp, const astOp op, exp *rExp);
   // New UNARYOP
@@ -83,7 +82,7 @@ public:
   void printExp();
   ~exp();
   expType tag;
-  std::variant<binOp, unaryOp, double, int, std::string> variant = 0;
+  std::variant<binOp, unaryOp, long double, long long, std::string> variant = 0;
 };
 
 class args {
