@@ -15,6 +15,8 @@ enum errorTypeEnum {
   MALFORMEDEXPR,
   BADCASTERROR,
   CUSTOMERROR,
+  CUSTOMERRORAST,
+  INVALIDAST,
 };
 
 inline const std::string errorTypes[]{"Unknown token",
@@ -26,7 +28,8 @@ inline const std::string errorTypes[]{"Unknown token",
                                       "Bad escaped sequence",
                                       "Malformed number token",
                                       "Malformed expression",
-                                      "Invalid type"};
+                                      "Invalid type",
+                                      "Unable to generate AST"};
 
 class errorHandler {
 public:
@@ -80,6 +83,8 @@ private:
       switch (err.errorType) {
       case FILEERROR:
         return os << errorTypes[FILEERROR] << ' ' << err.str << "\n\n";
+      case CUSTOMERRORAST:
+        return os << err.str << "\n\n";
       case CUSTOMERROR:
         return os << "Error found at line: " << err.line
                   << " column: " << err.column << '\n'

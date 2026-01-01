@@ -4,7 +4,6 @@
 errorHandler::~errorHandler() {
   if (errors.empty())
     return;
-  std::cout << "Aaaaal\n";
 #ifndef FUZZER
 
   for (const auto &err : errors)

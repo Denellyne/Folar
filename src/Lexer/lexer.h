@@ -13,9 +13,8 @@ public:
   bool parseFile(std::string_view str);
   std::vector<token> &getTokens() { return tokens; }
 
-  void closeFile();
-
 private:
+  void closeFile();
   bool openFile(std::string_view str);
 
   tokenId getNextToken();

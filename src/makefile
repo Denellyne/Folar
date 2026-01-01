@@ -1,14 +1,14 @@
 CXX = g++
-CFLAGS = -fimplicit-constexpr -std=c++23 -MMD -MP
+CFLAGS = -fimplicit-constexpr -std=c++23 
 INCLUDES := $(shell find . -name '*.cpp')
 OBJ := $(patsubst %.cpp,%.o,$(INCLUDES))
 TEST := *.md
 DEPS := $(OBJ:.o=.d)
-DEBUG = -g  -fsanitize=address,leak -Wall -Wextra -pedantic
+DEBUG = -g  -fsanitize=address,leak,undefined -Wall 
 OUT = ../bin/main
 OUTFUZZ = ../bin/mainFuzz
 CORES = ./cores/core.*
-FUZZOBJ := $(shell find core/ -name '*.cpp')
+FUZZOBJ := $(shell find . -name '*.cpp')
 FUZZFLAGS := -max_len=16365 -only_ascii=1 -print_final_stats=1 -trace_malloc=[12]
 FUZZCFLAGS := -g -O1 -fno-omit-frame-pointer -fsanitize-coverage=trace-cmp,trace-gep,trace-div -fno-optimize-sibling-calls -fsanitize=fuzzer,address,leak -DFUZZER  -std=c++23
 

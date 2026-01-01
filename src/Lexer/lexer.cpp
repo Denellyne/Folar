@@ -1,13 +1,14 @@
 #include "lexer.h"
-#include <cstring>
 #include <iostream>
+#include <string.h>
 
 void lexer::closeFile() {
-  file.clear();
-  file.seekg(0, std::ios::beg);
-  file.close();
-  while (file.is_open())
-    ;
+  // file.clear();
+  // file.seekg(0, std::ios::beg);
+  if (file.is_open())
+    file.close();
+  // while (file.is_open())
+  //   ;
 }
 bool lexer::parseFile(std::string_view str) {
   if (!openFile(str))
@@ -58,8 +59,8 @@ bool lexer::parseFile(std::string_view str) {
   std::cout << str << " parsed\n";
 #endif
 #ifdef DEBUG
-  for (const auto &tk : tokens)
-    std::cout << tk << '\n';
+  // for (const auto &tk : tokens)
+  // std::cout << tk << '\n';
 #endif // DEBUG
   closeFile();
   return !errorFound;
@@ -115,8 +116,8 @@ const char lexer::peekNextChar() {
   return c;
 }
 bool lexer::handleEscaping() {
-  auto isOctal = [](const char c) { return (c >= '0' && c <= '7'); };
-  auto isHex = [](const char c) {
+  constexpr auto isOctal = [](const char c) { return (c >= '0' && c <= '7'); };
+  constexpr auto isHex = [](const char c) {
     return ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'));
   };
   auto handleSpecial = [&](auto condition, int length) {
@@ -225,7 +226,7 @@ bool lexer::getStringLiteral() {
 }
 
 int lexer::getNumberLiteral(char ch) {
-  auto isValid = [](char c) {
+  constexpr auto isValid = [](char c) {
     return (c == ';' || c == ')' || c == ']' || c == '*' || c == '-' ||
             c == '+' || c == '/' || c == '%');
   };
@@ -273,7 +274,7 @@ int lexer::isSpecialCharacter(char c) {
 };
 
 bool lexer::getSpecialTokens(char ch) {
-  auto isAlphaNumeric = [](char c) -> bool {
+  constexpr auto isAlphaNumeric = [](char c) -> bool {
     if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') ||
         (c >= 'A' && c <= 'Z'))
       return true;
@@ -314,6 +315,9 @@ tokenId lexer::getNextToken() {
     return EOFToken;
   case '~':
     return BITWISENOTToken;
+  case '^': {
+    return BITWISEXORToken;
+  }
   case '&': {
     if (match('&'))
       return ANDToken;
@@ -345,10 +349,10 @@ tokenId lexer::getNextToken() {
       return EQUALToken;
     return ASSIGNToken;
   }
-
   case '*':
+    if (match('*'))
+      return POWToken;
     return MULTIPLYToken;
-
   case '+':
     return ADDToken;
   case '-':
@@ -406,7 +410,6 @@ tokenId lexer::getNextToken() {
       int returnValue = getNumberLiteral(ch);
       if (returnValue == 0)
         return ERRORToken;
-
       else if (returnValue == 1)
         return NUMBERLiteralToken;
 

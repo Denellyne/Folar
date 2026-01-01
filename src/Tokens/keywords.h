@@ -1,8 +1,10 @@
 #pragma once
 #include "tokenEnum.h"
+#include <string>
 #include <unordered_map>
 
 static std::unordered_map<std::string, tokenId> keywords{
+    // {"main", MAINToken},
     {"if", IFToken},
     {"mut", MUTABLEToken},
     {"while", WHILEToken},
